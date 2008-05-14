@@ -76,9 +76,9 @@ if ($corridaValida == 1) {
       	if ($tipoCorrida eq "-d") {
       		gontrosub::actualizarArea($area, $periodo, $gastoAcumulado + $montoExtraordinario + $montoNormal, "confdir/area.acum");
       		gontrosub::actualizarCxA($area, $periodo, $nuevosMontosxConcepto, $nuevasRepeticionesxConcepto, "confdir/cxa.acum");
-      		#gontrosub::generarArchivoGN($gastosNormales, "gastodir/proc/$area.gn") if @{$gastosNormales} > 0; 
-      		#gontrosub::generarArchivoGE($gastosExtraordinarios, "gastodir/proc/$area.ge", "confdir/motivos.tab") if @{$gastosExtraordinarios} > 0;
-      		#/TODO Usar "mover" para pasar los .ord procesados a /proc
+      		gontrosub::generarArchivoGN($gastosNormales, "gastodir/proc/$area.gn") if @{$gastosNormales} > 0; 
+      		gontrosub::generarArchivoGE($gastosExtraordinarios, "gastodir/proc/$area.ge", "confdir/motivos.tab") if @{$gastosExtraordinarios} > 0;
+      		`MOVER.sh $_ gastodir/proc/$area.$periodo.ord gontro.log`;
       	}      	
 		
       	#Generar informe final y mostrarlo por pantalla
