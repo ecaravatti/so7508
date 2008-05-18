@@ -3,7 +3,7 @@
 #$3 (Opcional) = Archivo de log del comando que la invoca (podremos hacer esto???)
 #$4 (Opcional) = Información adicional
 
-GLOG=../Glog/glog.sh
+GLOG=./glog.sh
 
 if [ $# -lt 2 ]
 then
@@ -75,8 +75,7 @@ then
 	fi
 
 	IFSOriginal=$IFS
-	IFS='
-	' #IFS default, lo setteo por las dudas que quien me invoca lo tenga cambiado
+	IFS=$'\t\n ' #IFS default, lo setteo por las dudas que quien me invoca lo tenga cambiado
 	archivos_duplicados=($(ls -r "$directorio_destino/dup" | grep  "^$archivo_destino\.[0-9]\{3\}$"))
 	
 	if [ ${#archivos_duplicados[*]} == 0 ] #Veo si hay alguna otra duplicacion del mismo archivo
