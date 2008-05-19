@@ -13,7 +13,7 @@
 ####################################################################
 #	Integrantes
 #		- Alvarez Fantone, Nicolas;
-#       	- Caravatti, Estefanía;
+#       - Caravatti, Estefanía;
 #		- Garcia Cabrera, Manuel;
 #		- Pisaturo, Damian;	
 #		- Rodriguez, Maria Laura.
@@ -37,7 +37,7 @@ if ($corridaValida == 1) {
 	gontrosub::log("Tipo de corrida $tipoCorrida, Area a procesar = $area, Periodo a procesar = $periodo");
    
    	#Obtener nombres de archivos con area y periodo dados
-   	my @nombreArchivos = <$ENV{"GASTODIR"}/aproc/$area.$periodo.ord>;
+   	my @nombreArchivos = <$ENV{'GASTODIR'}/aproc/$area.$periodo.ord>;
 
    	#Inicializacion de variables necesarias para el proceso de archivos
    	my ($presupuestoMensual, $gastoAcumulado) = (0, 0);
@@ -52,17 +52,17 @@ if ($corridaValida == 1) {
    		gontrosub::log("Procesando Archivo: $_");
    		
    		#Obtener area y periodo para el archivo en proceso
-   		(/$ENV{"GASTODIR"}/aproc\/(\d{6}).(\d{6}).ord/) && ($area = $1) && ($periodo = $2);
+   		(/$ENV{'GASTODIR'}\/aproc\/(\d{6}).(\d{6}).ord/) && ($area = $1) && ($periodo = $2);
    		
    		#Obtener presupuesto mensual y gasto acumulado para el area/periodo
-      		$presupuestoMensual = gontrosub::getPresupuestoMensual($area, "$ENV{"CONFDIR"}/area.tab");
-      		$gastoAcumulado = gontrosub::getGastoAcumulado($area, $periodo, "$ENV{"CONFDIR"}/area.acum");
+      		$presupuestoMensual = gontrosub::getPresupuestoMensual($area, "$ENV{'CONFDIR'}/area.tab");
+      		$gastoAcumulado = gontrosub::getGastoAcumulado($area, $periodo, "$ENV{'CONFDIR'}/area.acum");
       	
       		#Obtener conceptos por area (montos maximos y repeticiones)
-      		@conceptos = gontrosub::getConceptos($area, "$ENV{"CONFDIR"}/cxa.tab");
+      		@conceptos = gontrosub::getConceptos($area, "$ENV{'CONFDIR'}/cxa.tab");
       
       		#Obtener conceptos acumulados por area y periodo(montos maximos y repeticiones)
-      		@conceptosAcumulados = gontrosub::getConceptosAcumulados($area, $periodo, "$ENV{"CONFDIR"}/cxa.acum");
+      		@conceptosAcumulados = gontrosub::getConceptosAcumulados($area, $periodo, "$ENV{'CONFDIR'}/cxa.acum");
 
       		#Crear estructura de datos para el procesamiento de archivo
       		@datosArchivoGastos = ($_, $presupuestoMensual, $gastoAcumulado, @conceptos, @conceptosAcumulados);
@@ -74,22 +74,22 @@ if ($corridaValida == 1) {
 
       		#Si la corrida es definitiva, actualizar las acumulaciones y generar los archivos de gastos 
       		if ($tipoCorrida eq "-d") {
-			gontrosub::actualizarArea($area, $periodo, $gastoAcumulado + $montoExtraordinario + $montoNormal, "$ENV{"CONFDIR"}/area.acum");
-			
-			gontrosub::actualizarCxA($area, $periodo, $nuevosMontosxConcepto, $nuevasRepeticionesxConcepto, "$ENV{"CONFDIR"}/cxa.acum");
-			
-			gontrosub::generarArchivoGN($gastosNormales, "$ENV{"GASTODIR"}/proc/$area.gn") if @{$gastosNormales} > 0; 
-			
-			gontrosub::generarArchivoGE($gastosExtraordinarios, "$ENV{"CONFDIR"}/proc/$area.ge", "$ENV{"CONFDIR"}/motivos.tab") if @{$gastosExtraordinarios} > 0;
-			
-			`mover.sh $_ $ENV{"GASTODIR"}/proc/$area.$periodo.ord gontrolog`;
-      		}      	
+				gontrosub::actualizarArea($area, $periodo, $gastoAcumulado + $montoExtraordinario + $montoNormal, "$ENV{'CONFDIR'}/area.acum");
+				
+				gontrosub::actualizarCxA($area, $periodo, $nuevosMontosxConcepto, $nuevasRepeticionesxConcepto, "$ENV{'CONFDIR'}/cxa.acum");
+				
+				gontrosub::generarArchivoGN($gastosNormales, "$ENV{'GASTODIR'}/proc/$area.gn") if @{$gastosNormales} > 0; 
+				
+				gontrosub::generarArchivoGE($gastosExtraordinarios, "$ENV{'CONFDIR'}/proc/$area.ge", "$ENV{'CONFDIR'}/motivos.tab") if @{$gastosExtraordinarios} > 0;
+				
+				`mover.sh $_ $ENV{'GASTODIR'}/proc/$area.$periodo.ord gontrolog`;
+	      		}      	
 		
       	#Generar informe final y mostrarlo por pantalla
       	gontrosub::generarInforme($area, $periodo, $presupuestoMensual,
       				$gastoAcumulado,      				$#{$gastosExtraordinarios}, $montoExtraordinario,
       				$#{$gastosNormales}, $montoNormal,
-      				"$ENV{"GRUPO"}/informe.proc" . "$procnum");
+      				"$ENV{'GRUPO'}/informe.proc" . "$procnum");
    	}
 
 } else {

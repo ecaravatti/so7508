@@ -11,7 +11,7 @@
 ####################################################################
 #	Integrantes
 #		- Alvarez Fantone, Nicolas;
-#       	- Caravatti, Estefanía;
+#       - Caravatti, Estefanía;
 #		- Garcia Cabrera, Manuel;
 #		- Pisaturo, Damian;	
 #		- Rodriguez, Maria Laura.
@@ -21,8 +21,8 @@ use Tie::File;
 package gontrosub;
 
 sub getProcNum {
-	my $procnum = $ENV{"GPROCNUM"};
-	$ENV{"GPROCNUM"} = $procnum + 1;		
+	my $procnum = $ENV{'GPROCNUM'};
+	$ENV{'GPROCNUM'} = $procnum + 1;		
 
 	return $procnum;
 
@@ -304,8 +304,8 @@ sub generarInforme {
 	
 	open (my $informe, ">> $nombreInforme") or die "$!";
 		
-	print $informe "\nInforme de control del �rea $area para el per�odo $periodo\n";
-	print $informe "Presupuesto Mensual del �rea: $presupuestoMensual\n";
+	print $informe "\nInforme de control del rea $area para el periodo $periodo\n";
+	print $informe "Presupuesto Mensual del area: $presupuestoMensual\n";
 	print $informe "Acumulado Inicial: $totalxAreaInicial\n";
 	print $informe "Acumulado Final: ",  $totalxAreaInicial + $montoNormal + $montoExtraordinario,"\n";
 	print $informe "Cantidad de Registros y Total de Gastos normales procesados: $cantNormales $montoNormal\n";
@@ -317,7 +317,7 @@ sub generarInforme {
 sub log {
 	my $logMsg = shift;
 
-	`glog.sh gontrolog $logMsg GONTRO`
+	`glog.sh gontrolog $logMsg GONTRO`;
 
 	return;
 }
