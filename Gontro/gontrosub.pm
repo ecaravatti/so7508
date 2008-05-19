@@ -1,17 +1,17 @@
-#!C:/Perl/bin/perl.exe -w
+#!usr/bin/perl -w
 ####################################################################
 #	Archivo   : gontrosub.pl
-#	Módulo	  : GONTRO
+#	MÃ³dulo	  : GONTRO
 ####################################################################
 #	75.08 Sistemas Operativos
-#	Trabajo practico
+#	Trabajo prÃ¡ctico
 ####################################################################
-#	Descripcion
+#	DescripciÃ³n
 #		Paquete de subrutinas empleadas por el modulo GONTRO.
 ####################################################################
 #	Integrantes
 #		- Alvarez Fantone, Nicolas;
-#       - Caravatti, Estefanía;
+#       	- Caravatti, EstefanÃ­a;
 #		- Garcia Cabrera, Manuel;
 #		- Pisaturo, Damian;	
 #		- Rodriguez, Maria Laura.
@@ -21,21 +21,15 @@ use Tie::File;
 package gontrosub;
 
 sub getProcNum {
-	my ($confilename, $procnum, $primerProc) = (shift, 0, 1);
-	tie my @lineasconf, 'Tie::File', $confilename or die "No se pude asociar el archivo $confilename: $!";
+	my $procnum = $ENV{"GPROCNUM"};
+	$ENV{"GPROCNUM"} = $procnum + 1;		
 
-    foreach(@lineasconf){
-       last if ((/GPROCNUM/i) && (s/(\d+)/$1+1/ge) && ($procnum = $1+1) && ($primerProc = 0));
-    };
+	return $procnum;
 
-    push(@lineasconf, "GPROCNUM = 0") if $primerProc;
-    untie @lineasconf or die "$!";
-    
-    return $procnum;
 }
 
 sub getTipoCorrida {
-	my ($valida, $tipoCorrida, $area, $periodo) = (1, 0, "*", "*");
+    my ($valida, $tipoCorrida, $area, $periodo) = (1, 0, "*", "*");
     my @argsInvalidos = ();
     my @parametros = @_;
 
@@ -310,14 +304,22 @@ sub generarInforme {
 	
 	open (my $informe, ">> $nombreInforme") or die "$!";
 		
-	print $informe "\nInforme de control del área $area para el período $periodo\n";
-	print $informe "Presupuesto Mensual del área: $presupuestoMensual\n";
+	print $informe "\nInforme de control del ï¿½rea $area para el perï¿½odo $periodo\n";
+	print $informe "Presupuesto Mensual del ï¿½rea: $presupuestoMensual\n";
 	print $informe "Acumulado Inicial: $totalxAreaInicial\n";
 	print $informe "Acumulado Final: ",  $totalxAreaInicial + $montoNormal + $montoExtraordinario,"\n";
 	print $informe "Cantidad de Registros y Total de Gastos normales procesados: $cantNormales $montoNormal\n";
 	print $informe "Cantidad de Registros y Total de Gastos extraordinarios: $cantExtraordinarios $montoExtraordinario\n";
 	
 	close $informe or die "$!";
+}
+
+sub log {
+	my $logMsg = shift;
+
+	`glog.sh gontrolog $logMsg GONTRO`
+
+	return;
 }
 
 
