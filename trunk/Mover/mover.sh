@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #$1 = Origen
 #$2 = Destino
 #$3 (Opcional) = Archivo de log del comando que la invoca
