@@ -5,11 +5,11 @@
 #$3 (Opcional) = Archivo de log del comando que la invoca
 #$4 (Opcional) = Información adicional
 
-GLOG=glog.sh
+GLOG=../Glog/glog.sh
 
 if [ $# -lt 2 ]
 then
-	$GLOG $ARCHIVO_LOG "Cantidad de parametros invalida" $0
+	$GLOG /dev/stdout "Cantidad de parametros invalida" MOVER
 	exit 1
 elif [ $# -gt 2 ]
 then
@@ -19,60 +19,60 @@ else
 fi
 
 
-if [ -d $2 ] #Veo si el destino es un directorio
+if [ -d "$2" ] #Veo si el destino es un directorio
 then
-	destino=$2/`basename $1` #Conserva nombre de archivo original
+	destino="$2"/`basename "$1"` #Conserva nombre de archivo original
 else
-	destino=$2 #Renombra archivo
+	destino="$2" #Renombra archivo
 fi
 
-directorio_destino=`dirname $destino`
-archivo_destino=`basename $destino`
+directorio_destino=`dirname "$destino"`
+archivo_destino=`basename "$destino"`
 
-if [ ! -e $directorio_destino ]
+if [ ! -e "$directorio_destino" ]
 then
-	$GLOG $ARCHIVO_LOG "El directorio $directorio_destino no existe" $0
+	$GLOG "$ARCHIVO_LOG" "El directorio $directorio_destino no existe" MOVER
 	exit 2
 fi
 
-if [ ! -e $1 ]
+if [ ! -e "$1" ]
 then
-	$GLOG $ARCHIVO_LOG "El archivo origen $1 no existe" $0
+	$GLOG "$ARCHIVO_LOG" "El archivo origen $1 no existe" MOVER
 	exit 3
 fi
 
-if [ -d $1 ]
+if [ -d "$1" ]
 then
-	$GLOG $ARCHIVO_LOG "El archivo origen $1 es un directorio" $0
+	$GLOG "$ARCHIVO_LOG" "El archivo origen $1 es un directorio" MOVER
 	exit 4
 fi
 
 
 #Obtengo los paths absolutos (sin .. o . intercalados) de ambos archivos, para ver si son el mismo archivo o no.
-cd `dirname $1`
+cd `dirname "$1"`
 path1=`pwd`
 cd - >> /dev/null
-cd `dirname $2`
+cd `dirname "$2"`
 path2=`pwd`
 cd - >> /dev/null
-archivo_origen_absoluto=$path1/`basename $1`
-archivo_destino_absoluto=$path2/`basename $2`
+archivo_origen_absoluto="$path1"/`basename "$1"`
+archivo_destino_absoluto="$path2"/`basename "$2"`
 
-if [ $archivo_origen_absoluto == $archivo_destino_absoluto ] #Esto no checkea si los archivos son iguales, porque quizas uno tiene path relativo y otro absoluto...
+if [ "$archivo_origen_absoluto" == "$archivo_destino_absoluto" ]
 then
-	$GLOG $ARCHIVO_LOG "Destino y origen iguales" $0
+	$GLOG "$ARCHIVO_LOG" "Destino y origen iguales" MOVER
 	exit 5
 fi
 
-if [ -e $destino ] #Veo si el archivo existe
+if [ -e "$destino" ] #Veo si el archivo existe
 then
-	if [ ! -e $directorio_destino/dup ] #Veo si no existe el directorio dup
+	if [ ! -e "$directorio_destino"/dup ] #Veo si no existe el directorio dup
 	then
-		$GLOG $ARCHIVO_LOG "Creando directorio $directorio_destino/dup" $0
-		mkdir $directorio_destino/dup
-	elif [ ! -d $directorio_destino/dup ] #Chequeo si el dup existente no es un directorio
+		$GLOG "$ARCHIVO_LOG" "Creando directorio $directorio_destino/dup" MOVER
+		mkdir "$directorio_destino"/dup
+	elif [ ! -d "$directorio_destino"/dup ] #Chequeo si el dup existente no es un directorio
 	then
-		$GLOG $ARCHIVO_LOG "No se pudo crear directorio $directorio_destino/dup ya que existe un archivo con ese nombre" $0
+		$GLOG "$ARCHIVO_LOG" "No se pudo crear directorio $directorio_destino/dup ya que existe un archivo con ese nombre" $0
 		exit 6
 	fi
 
@@ -101,29 +101,29 @@ then
 		fi
 	fi
 		
-	mv $1 $directorio_destino/dup/$archivo_destino.$extension
+	mv "$1" "$directorio_destino"/dup/"$archivo_destino"."$extension"
 	if [ $? == 0 ]
 	then
-		$GLOG $ARCHIVO_LOG "El archivo ya existia en directorio destino. Se lo guardo en $directorio_destino/dup/$archivo_destino.$extension" $0
+		$GLOG "$ARCHIVO_LOG" "El archivo ya existia en directorio destino. Se lo guardo en $directorio_destino/dup/$archivo_destino.$extension" MOVER
 		exit 0 #Esta bien devolver 0 si fue mv duplicado?
 	else
-		$GLOG $ARCHIVO_LOG "mv lanzo error al mover el archivo" $0 #Error inesperado
+		$GLOG "$ARCHIVO_LOG" "mv lanzo error al mover el archivo" MOVER #Error inesperado
 		exit 7
 	fi
 else
-	mv $1 $destino
+	mv "$1" "$destino"
 	resultado=$?
 	if [ $? == 0 ]
 	then
 		if [ $# -gt 3 ]
 		then
-			$GLOG $ARCHIVO_LOG "$4. El archivo $1 fue movido satisfactoriamente a $destino" $0
+			$GLOG "$ARCHIVO_LOG" "$4. El archivo $1 fue movido satisfactoriamente a $destino" MOVER
 		else
-			$GLOG $ARCHIVO_LOG "El archivo $1 fue movido satisfactoriamente a $destino" $0
+			$GLOG "$ARCHIVO_LOG" "El archivo $1 fue movido satisfactoriamente a $destino" MOVER
 		fi
 		exit 0
 	else
-		$GLOG $ARCHIVO_LOG "mv lanzo error al mover el archivo" $0 #Error inesperado
+		$GLOG "$ARCHIVO_LOG" "mv lanzo error al mover el archivo" MOVER #Error inesperado
 		exit 8
 	fi
 fi
