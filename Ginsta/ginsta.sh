@@ -7,7 +7,7 @@
 #
 # Descripción: este comando se encarga de efectuar la instalación del paquete GASTOS.
 #
-# Ubicación: directorio grupo03
+# Ubicación: 
 #
 # Variables de Entorno que utiliza: GRUPO
 #
@@ -490,7 +490,13 @@ exit \$retorno
 
 EOF
 	
-	chmod -f 777 "$BINDIR/$GINICI"	
+	chmod -f 777 "$BINDIR/$GINICI"
+	printAndLog "Comando Ginici creado con éxito!"
+
+	# Se crea el archivo "ginici.conf" en el cual se le indica a GINICI el nombre
+	# del archivo de configuración del sistema (gastos.conf).
+	# El nombre incluye el path completo
+	echo "$CONFDIR/gastos.conf" > "$BINDIR/ginici.conf"
 }
 
 mostrarComponentesInstaldos()
