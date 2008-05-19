@@ -22,7 +22,7 @@ then
 else
 	comando=`echo $3 | sed 's/\.sh$//'` #Le saco el .sh si es que lo tiene
 	mensaje="`date +%D\ %T` - `basename $comando` - `whoami` - $2"
-	echo $mensaje >> $ARCHIVO_LOG
+	echo -e $mensaje >> $ARCHIVO_LOG
 
 	if [ "$LOGSIZE" != "" ]
 	then
