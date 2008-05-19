@@ -342,6 +342,7 @@ copiarArchivos()
 {
 	printAndLog "Moviendo archivos..."
 
+	# Se copian los ejecutables
 	"./$MOVER" "$GEMONI" "$BINDIR" "$ARCHIVO_LOG"
 	chmod -f 777 "$BINDIR/$GEMONI"
 	printAndLog "Instalación del componente GEMONI completada"
@@ -361,6 +362,21 @@ copiarArchivos()
 	"./$MOVER" "$MOVER" "$BINDIR" "$ARCHIVO_LOG"
 	chmod -f 777 "$BINDIR/$MOVER"
 	printAndLog "Instalación del componente MOVER completada"
+
+	# Se copian los archivos de prueba
+	for i in `ls tests/confdir/`
+	do
+		"./$MOVER" "$i" "$CONFDIR" "$ARCHIVO_LOG"
+		chmod -f 755 "$CONFDIR/$i"
+	done
+
+	for i in `ls tests/arridir/reci/`
+	do
+		"./$MOVER" "$i" "$ARRIDIR/reci" "$ARCHIVO_LOG"
+		chmod -f 755 "$ARRIDIR/reci/$i"
+	done
+
+	printAndLog "Archivos de prueba copiados con éxito"
 }
 
 guardarInformacionInstalacion()
