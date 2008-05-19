@@ -2,9 +2,10 @@
 #$2 = Mensaje a loggear
 #$3 = Comando que me invoca. Si tiene el .sh no importa, ya que se lo saco.
 
-LOGDIR=./
-LOGSIZE=6
-LOGEXT=.log
+if [ "$LOGDIR" == "" ]
+then
+	LOGDIR="./"
+fi
 
 ARCHIVO_LOG=$LOGDIR/$1$LOGEXT
 
