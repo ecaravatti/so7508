@@ -25,12 +25,13 @@ INSTALACION_ABORTADA=7
 GINICI="ginici.sh"
 GEMONI="gemoni.sh"
 GALIDA="galida.sh"
-GONTRO="gontro.sh"
+GONTRO="gontro.pl"
+GONTROSUB="gontrosub.pm"
 GLOG="glog.sh"
 MOVER="mover.sh"
 
 NOMBRE_COMANDO="GINSTA"
-ARCHIVO_LOG="$GRUPO/gastos.log"
+ARCHIVO_LOG="gastos.log"
 CANCEL_MSG="Proceso de Instalación Cancelado"
 PERL_MSG="****************************************************************************
 * Para instalar GASTOS es necesario contar con Perl 5 o superior instalado *
@@ -56,7 +57,7 @@ readAndLog()
 {
 	read $1
 	eval aux=\$$1
-	echo -e "$aux" >> "$ARCHIVO_LOG"
+	echo -e "$aux" >> "$GRUPO/$ARCHIVO_LOG"
 	"./$GLOG" "$ARCHIVO_LOG" "$aux" "$NOMBRE_COMANDO"
 }
 
@@ -77,6 +78,10 @@ die()
 # el nombre del componente, el usuario y la fecha en que se instaló.
 # Recibe los nombres de los componentes concatenados en un string, pero
 # deben estar separados por un espacio.
+# El segundo parámetro es el path donde se debe buscar el archivo,
+# para obtener la información sobre el usuario y la fecha.
+# El cuarto parámetro debe ser 1 si se desea que se imprima la información
+# sobre el usuario y la fecha de instalación del comando, ó 0 en caso contrario.
 printComponents()
 {
 	array=( `echo "$1"` )
@@ -86,32 +91,37 @@ printComponents()
 		comando=(`echo ${i} | tr '.' ' '`)
 		# Paso el nombre del archivo a mayúscula
 		comando=(`echo ${comando[0]} | tr "[:lower:]" "[:upper:]"`)
-		# Obtengo el usuario que creó el archivo
-		usuario=$(ls -l ${i} | cut -f 3 -d ' ')
-		# Obtengo la fecha en que se creó el archivo
-		fecha=$(ls -l ${i} | cut -f 6 -d ' ')
-		printAndLog "* ${comando[0]}\t$usuario\t$fecha\t\t*"
+		if [ "$3" == 1 ] # Mostrar usuario y fecha
+		then
+			# Obtengo el usuario que creó el archivo
+			usuario=$(ls -l "$2/${i}" | cut -f 3 -d ' ')
+			# Obtengo la fecha en que se creó el archivo
+			fecha=$(ls -l "$2/${i}" | cut -f 6 -d ' ')
+			printAndLog "* ${comando[0]}\t$usuario\t$fecha\t\t\t*"
+		else
+			printAndLog "* ${comando[0]}\t\t\t\t\t\t*"
+		fi
 	done
 }
 
 printComponentsList()
 {
-	printAndLog "********************************************************"
+	printAndLog "*********************************************************"
 	printAndLog "*\tProceso de Instalación del sistema GASTOS\t*"
 	printAndLog "*\t\tCopyright TPSistemasOp (c)2008\t\t*"
-	printAndLog "********************************************************"
-	printAndLog "* Se encuentran instalados los siguientes componentes: *"
+	printAndLog "*********************************************************"
+	printAndLog "* Se encuentran instalados los siguientes componentes:\t*"
 
 	# Se imprimen los componentes instalados
-	printComponents "$1"
+	printComponents "$1" "$3" 1
 	if [ "$2" != "" ]
 	then
 		printAndLog "* Falta instalar los siguientes componentes:\t\t*"
 		# Se imprimen los componentes que faltan instalar
-		printComponents "$2"
+		printComponents "$2" "$3" 0
 	fi
 
-	printAndLog "********************************************************"
+	printAndLog "*********************************************************"
 	
 }
 
@@ -139,21 +149,21 @@ obtenerEspacioDisponible()
 
 mostrarResumenParametros()
 {
-	printAndLog "*****************************************************************************"
-	printAndLog "* Parámetros de la instalación del paquete GASTOS\t\t\t\t*"
-	printAndLog "*****************************************************************************"
+	printAndLog "*****************************************************************************************"
+	printAndLog "* Parámetros de la instalación del paquete GASTOS\t\t\t\t\t*"
+	printAndLog "*****************************************************************************************"
 	printAndLog "* Directorio de instalación\t\t: $GRUPO\t\t*"
-	printAndLog "* Log de la instalación\t\t: $ARCHIVO_LOG\t\t*"
-	printAndLog "* Espacio disponible en \$GRUPO\t\t: $DATAFREE\t\t*"
+	printAndLog "* Log de la instalación\t\t\t: $GRUPO/$ARCHIVO_LOG\t*"
+	printAndLog "* Espacio disponible en \$GRUPO\t\t: $DATAFREE KB\t\t\t\t\t*"
 	printAndLog "* Biblioteca de ejecutables\t\t: $BINDIR\t\t*"
 	printAndLog "* Biblioteca de tablas y configuración\t: $CONFDIR\t\t*"
-	printAndLog "* Directorio de arribos\t\t: $ARRIDIR\t\t*"
-	printAndLog "* Año ingresado para aceptar gastos\t: $ANIO\t\t*"
-	printAndLog "* Directorio de gastos\t\t: $GASTODIR\t\t*"
+	printAndLog "* Directorio de arribos\t\t\t: $ARRIDIR\t*"
+	printAndLog "* Año ingresado para aceptar gastos\t: $ANIO\t\t\t\t\t\t*"
+	printAndLog "* Directorio de gastos\t\t\t: $GASTODIR\t*"
 	printAndLog "* Directorio para archivos de Log\t: $LOGDIR\t\t*"
-	printAndLog "* Extensión para los archivos de Log\t: $LOGEXT\t\t*"
-	printAndLog "* Máximo para los archivos de Log\t: $LOGSIZE\t\t*"
-	printAndLog "*****************************************************************************"
+	printAndLog "* Extensión para los archivos de Log\t: $LOGEXT\t\t\t\t\t\t*"
+	printAndLog "* Máximo para los archivos de Log\t: $LOGSIZE KB\t\t\t\t\t\t*"
+	printAndLog "*****************************************************************************************"
 }
 
 leerEspacioDisponible()
@@ -340,7 +350,7 @@ crearEstructuraDirectorios()
 
 copiarArchivos()
 {
-	printAndLog "Moviendo archivos..."
+	printAndLog "Moviendo archivos ejecutables..."
 
 	# Se copian los ejecutables
 	"./$MOVER" "$GEMONI" "$BINDIR" "$ARCHIVO_LOG"
@@ -352,31 +362,33 @@ copiarArchivos()
 	printAndLog "Instalación del componente GALIDA completada"
 
 	"./$MOVER" "$GONTRO" "$BINDIR" "$ARCHIVO_LOG"
+	"./$MOVER" "$GONTROSUB" "$BINDIR" "$ARCHIVO_LOG"
 	chmod -f 777 "$BINDIR/$GONTRO"
+	chmod -f 777 "$BINDIR/$GONTROSUB"
 	printAndLog "Instalación del componente GONTRO completada"
 
-	"./$MOVER" "$GLOG" "$BINDIR" "$ARCHIVO_LOG"
+	cp "$GLOG" "$BINDIR"
 	chmod -f 777 "$BINDIR/$GLOG"
 	printAndLog "Instalación del componente GLOG completada"
 
-	"./$MOVER" "$MOVER" "$BINDIR" "$ARCHIVO_LOG"
+	cp "$MOVER" "$BINDIR"
 	chmod -f 777 "$BINDIR/$MOVER"
 	printAndLog "Instalación del componente MOVER completada"
 
 	# Se copian los archivos de prueba
+	printAndLog "Moviendo archivos de prueba..."
+
 	for i in `ls tests/confdir/`
 	do
-		"./$MOVER" "$i" "$CONFDIR" "$ARCHIVO_LOG"
+		"./$MOVER" "tests/confdir/$i" "$CONFDIR" "$ARCHIVO_LOG"
 		chmod -f 755 "$CONFDIR/$i"
 	done
 
 	for i in `ls tests/arridir/reci/`
 	do
-		"./$MOVER" "$i" "$ARRIDIR/reci" "$ARCHIVO_LOG"
+		"./$MOVER" "tests/arridir/reci/$i" "$ARRIDIR/reci" "$ARCHIVO_LOG"
 		chmod -f 755 "$ARRIDIR/reci/$i"
 	done
-
-	printAndLog "Archivos de prueba copiados con éxito"
 }
 
 guardarInformacionInstalacion()
@@ -391,7 +403,7 @@ guardarInformacionInstalacion()
 	echo "BINDIR = $BINDIR" >> "$archivoConf"
 	echo "ARRIDIR = $ARRIDIR" >> "$archivoConf"
 	echo "GASTODIR = $GASTODIR" >> "$archivoConf"
-	echo "DATAFREE = $DATAFREE" >> "$archivoConf"
+	echo "DATAFREE = $DATAFREE KB" >> "$archivoConf"
 	echo "LOGDIR = $LOGDIR" >> "$archivoConf"
 	echo "LOGEXT = $LOGEXT" >> "$archivoConf"
 	echo "MAXLOGSIZE = $LOGSIZE KB" >> "$archivoConf"
@@ -491,7 +503,6 @@ exit \$retorno
 EOF
 	
 	chmod -f 777 "$BINDIR/$GINICI"
-	printAndLog "Comando Ginici creado con éxito!"
 
 	# Se crea el archivo "ginici.conf" en el cual se le indica a GINICI el nombre
 	# del archivo de configuración del sistema (gastos.conf).
@@ -501,14 +512,14 @@ EOF
 
 mostrarComponentesInstaldos()
 {
-	printAndLog "********************************************************"
+	printAndLog "*********************************************************"
 	printAndLog "* Se encuentra instalados los siguientes componentes:\t*"
 	componentes="$GINICI $GEMONI $GONTRO $GALIDA $GLOG $MOVER"
-	printComponents "$componentes"
-	printAndLog "********************************************************"
-	printAndLog "* FIN del Proceso de Instalación del Sistema de GASTOS *"
-	printAndLog "*\t\tCopyright TPSistemasOp (c)2008\t\t*"
-	printAndLog "********************************************************"
+	printComponents "$componentes" "$BINDIR" 1
+	printAndLog "*********************************************************"
+	printAndLog "* FIN del Proceso de Instalación del Sistema de GASTOS\t*"
+	printAndLog "*\tCopyright TPSistemasOp (c)2008\t\t\t*"
+	printAndLog "*********************************************************"
 }
 
 instalar()
@@ -545,62 +556,64 @@ instalar()
 
 inicializarArchivoLog()
 {
-	> "$ARCHIVO_LOG"
-	"./$GLOG" "$ARCHIVO_LOG" "******************************************" "$NOMBRE_COMANDO"
+	> "$1/$ARCHIVO_LOG"
+	"./$GLOG" "$ARCHIVO_LOG" "*******************************************************************" "$NOMBRE_COMANDO"
 	"./$GLOG" "$ARCHIVO_LOG" "Inicio de Ejecución. Valor \$GRUPO = <$GRUPO>" "$NOMBRE_COMANDO"
+}
+
+verificarComponentesInstalados()
+{
+	if [ "$BINDIR" != "" ]
+	then
+		cantInstalados=0
+		cantNoInstalados=0
+		componentes=( $GINICI $GEMONI $GALIDA $GONTRO $GLOG $MOVER )
+
+		for i in ${componentes[@]}
+		do
+			if [ -f "$BINDIR/${i}" ]
+			then
+				componentesInstalados[$cantInstalados]=${i}
+				cantInstalados=`expr $cantInstalados + 1`
+			else
+				componentesNoInstalados[$cantNoInstalados]=${i}
+				cantNoInstalados=`expr $canNotInstalados + 1`
+			fi
+		done
+
+		if [ ${#componentesInstalados} -ge 1 ]
+		then
+			# Concateno los arrays para pasárselos a la función
+			ci=`echo ${componentesInstalados[@]}`
+			cni=`echo ${componentesNoInstalados[@]}`
+			printComponentsList "$ci" "$cni" "$BINDIR"
+			if [ ${#componentesNoInstalados} -ge 1 ]
+			then
+				die "" $ERROR_COMPONENTE_INSTALADO
+			else
+				die "" $ERROR_PAQUETE_INSTALADO
+			fi				
+		fi
+	fi
 }
 
 # Se verifica que la variable GRUPO esté setteada
 if [ "$GRUPO" = "" ]
 then
-	ARCHIVO_LOG="$PWD/gastos.log"
-	inicializarArchivoLog
+	inicializarArchivoLog "."
 	die "La variable GRUPO no está setteada" $ERROR_VARIABLE_GRUPO
 fi
 
 # Se crea e inicializa el archivo de log
-inicializarArchivoLog
+inicializarArchivoLog "$GRUPO"
 
-# Se verifica si hay componentes instalados
-if [ "$BINDIR" != "" ]
-then
-	cantInstalados=0
-	cantNoInstalados=0
-	componentes=( $GINICI $GEMONI $GALIDA $GONTRO $GLOG $MOVER )
+verificarComponentesInstalados
 
-	for i in ${componentes[@]}
-	do
-		if [ -f "$BINDIR/${i}" ]
-		then
-			componentesInstalados[$cantInstalados]=${i}
-			cantInstalados=`expr $cantInstalados + 1`
-		else
-			componentesNoInstalados[$cantNoInstalados]=${i}
-			cantNoInstalados=`expr $canNotInstalados + 1`
-		fi
-	done
+verificarPerl
 
-	if [ ${#componentesInstalados} -ge 1 ]
-	then
-		# Concateno los arrays para pasárselos a la función
-		ci=`echo ${componentesInstalados[@]}`
-		cni=`echo ${componentesNoInstalados[@]}`
-		printComponentsList "$ci" "$cni"
-		if [ ${#componentesNoInstalados} -ge 1 ]
-		then
-			die "" $ERROR_COMPONENTE_INSTALADO
-		else
-			die "" $ERROR_PAQUETE_INSTALADO
-		fi
-	else
-		verificarPerl
-		instalar	
-	fi
-else
-	verificarPerl
-	instalar
-fi
+instalar
 
 fin
+
 exit $FIN_OK
 

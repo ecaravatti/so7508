@@ -6,10 +6,20 @@
 
 if [ "$LOGDIR" == "" ]
 then
-	LOGDIR="./"
+	if [ "$GRUPO" == "" ]
+	then
+		LOGDIR="."
+	else
+		LOGDIR="$GRUPO"
+	fi
 fi
 
-ARCHIVO_LOG="$LOGDIR"/"$1""$LOGEXT"
+if [ "$1" != "/dev/stdout" ]
+then
+	ARCHIVO_LOG="$LOGDIR"/"$1""$LOGEXT"
+else
+	ARCHIVO_LOG="$1"
+fi
 
 if [ -d "$ARCHIVO_LOG" ] #Veo si es un directorio
 then
