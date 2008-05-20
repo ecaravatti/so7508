@@ -1,15 +1,20 @@
 #!/bin/bash
+#
+#
+# Galida.sh
+# No recibe argumentos.
 
-# Constantes
+
+# Declaración de constantes:
 ERROR=1
 OK=0
 
 
-# Paths
-path=/home/estefania/Facu/SistemasOperativos/gastos
+# Declaracion de paths:
+path=/home/estefania/Facu/SistemasOperativos/gastos # TODO: probar ./..
 reci=$path/arridir/reci
-reci_ok=$reci/ok
-reci_rech=$reci/rech
+reci_ok=$path/gastodir/reci/ok
+reci_rech=$path/gastodir/reci/rech
 a_procesar=$path/gastodir/aproc
 log=$path/logdir
 gastos_conf=$path/confdir/gastos.conf
@@ -22,7 +27,7 @@ export PATH
 # Recibe el archivo a ordenar en $1 y deja el ordenado en $a_procesar
 ordenar_archivo()
 {
-	# ordena por el campo 1, luego por el 3 y luego por el 2.
+	# ordena por el campo 1, luego por el 3 y luego por el 2. Usa como delimitador al caracter ";"
 	sort -o "$reci_ok/$arch.ord" -t';' +0 -1 +2 -3 +1 -n "$reci_ok/$arch"
 	
 	echo "ya ordene el archivo."
@@ -100,25 +105,24 @@ validar_importe()
 	fi
 }
 
-# Recibe el nombre del archivo a validar
+# Recibe el nombre del archivo a validar.
+# Valida todos los registros, y devuelve el numero de registros erroneos.
 validar_registros_archivo() 
 {
 	local numero_registro=0
-	local resultado=0
 	local cantidad_registros_erroneos=0
 
 	for linea in `cat $reci/$1`
 	do
-		resultado=0
 		numero_registro=`expr $numero_registro + 1`
 		
-		echo "linea: $linea"
+		echo "linea $numero_registro: $linea"
 		cantidad_campos=$(echo $linea | awk -F';' '{print NF}')
 		echo "cant campos: $cantidad_campos"
 				
 		if [ "$cantidad_campos" -eq 4 ]
 		then
-			dia=$( echo $linea | awk -F';' '{print $1}')
+			dia=$(echo $linea | awk -F';' '{print $1}')
 			comprobante=$(echo $linea | awk -F';' '{print $2}')
 			id_concepto=$(echo $linea | awk -F';' '{print $3}')
 			importe=$(echo $linea | awk -F';' '{print $4}')
@@ -134,8 +138,7 @@ validar_registros_archivo()
 			if [ "$dia_valido" -eq "$ERROR" ]
 			then
 				glog.sh "galida" "El registro $numero_registro es rechazado debido a fecha invalida." "GALIDA"
-				# Resultado indica que hay error
-				resultado=1
+				cantidad_registros_erroneos=`expr $cantidad_registros_erroneos + 1`
 				continue
 			fi
 
@@ -145,7 +148,7 @@ validar_registros_archivo()
 			if [ "$importe_valido" -eq "$ERROR" ]
 			then 
 				glog.sh "galida" "El registro $numero_registro es rechazado debido a importe invalido." "GALIDA"
-				resultado=1
+				cantidad_registros_erroneos=`expr $cantidad_registros_erroneos + 1`
 				continue
 			fi
 			
@@ -154,8 +157,8 @@ validar_registros_archivo()
 
 			if [ "$concepto_valido" -eq "$ERROR" ]
 			then
-				resultado=1
 				glog.sh "galida" "El registro $numero_registro es rechazado debido a concepto invalido." "GALIDA"
+				cantidad_registros_erroneos=`expr $cantidad_registros_erroneos + 1`
 				continue
 			fi
 
@@ -164,29 +167,16 @@ validar_registros_archivo()
 		else
 			echo "Cant de campos invalida"
 			glog.sh "galida" "El registro $numero_registro es rechazado debido a cantidad de campos invalida." "GALIDA"
-			resultado=1
+			cantidad_registros_erroneos=`expr $cantidad_registros_erroneos + 1`
 			continue
-		fi
-		
-		if [ "$resultado" -gt 0 ]
-			then
-				# Incremento la cantidad de registros erroneos
-				cantidad_registros_erroneos=`expr $cantidad_registros_erroneos + 1`
-				echo "REGS ERROR: $cantidad_registros_erroneos"
 		fi
 	done
 	
-	# Si hubieron regitros invalidos retorno archivo con error
-	if [ "$cantidad_registros_erroneos" -gt 0 ]
-	then 
-		return $ERROR
-	else
-		return $OK
-	fi
-	
+	# Devuelve la cantidad de registros erroneos.
+	return $cantidad_registros_erroneos
 }
 
-# Si el archivo ordenado ya existe (ya fue procesado), devuelve ERROR, de lo contrario devuelve OK
+# Si el archivo ordenado existe (ya fue procesado), devuelve ERROR, de lo contrario devuelve OK
 verificar_archivo_ordenado()
 {
 	echo "estoy verificando el arch ordenado $1"
@@ -199,98 +189,24 @@ verificar_archivo_ordenado()
 	fi
 }
 
-#Recibe el nombre del archivo
-validar_anio()
-{
-	#obtengo los caracteres correspondientes al año
-	local anio=$(echo $1 | cut -c 8-11)
-
-	echo "el anio a validar es: $anio"
-
-	local anio_maximo=$(sed -n 4p $gastos_conf | cut -f 3 -d\ )
-
-	echo "el anio_maximo es: $anio_maximo"
-	
-	# anio >= anio_maximo
-	if [ "$anio" -ge "$anio_maximo" ] 
-	then
-		echo "anio valido"
-		return $OK
-	else
-		echo "anio invalido"
-		return $ERROR
-	fi
-}
-
-
-# Recibe un string a buscar dentro del archivo. 
-#Devuelve la cantidad de ocurrencias del mismo.
-buscar_en_archivo()
-{
-	echo "estoy en buscar_en_archivo. Quiero buscar en: $area_tab"
-	local resultado=$(cat $area_tab | grep "$1;" | wc -l)
-	echo "encontro el area?: $resultado"
-	return $resultado
-}
-
-# Recibe como argumento el nombre de archivo.
-validar_area()
-{
-	echo "estoy validando area. en \$1 hay: $1"
-	#obtengo los primeros 6 caracteres
-	local area=$(echo $1 | cut -c 1-6)
-
-	echo "en area me queda: $area"
-
-	buscar_en_archivo $area
-	area_encontrada="$?"
-
-	echo "sali de buscar archivo, area_encontrada: $area_encontrada"
-
-	return $area_encontrada
-}
 
 validar_nombre_archivo()
 {	
 	#primero valida que el formato sea codigo de area[6caracteres numericos].fecha[6caracteres numericos]
 	local resultado=$(echo $1 | grep -c '^[0-9]\{6\}\.[0-9]\{6\}$')
-	
-	echo "resultadoGlobal: $resultado"
 
-	#si el nombre del archivo es del formato correcto
-	if [ "$resultado" -eq 1 ] 
-		then
-		echo "voy a validar area"
-		validar_area $1
-		resultado="$?"
-
-		echo "resultadoArea: $resultado"
-
-		if [ "$resultado" -gt 0 ] 
-			then # Si el area es valida
-	
-			echo "voy a validar año"
-			validar_anio $1 # Valido el anio
-			resultado="$?"
-
-			echo "resultado de validar_anio: $resultado"
-			
-			if [ "$resultado" = 0 ] 
-				then
-				return $OK
-			else
-				return $ERROR
-			fi
-
-		else
-			return 	$ERROR	
-
-		fi
-
-	else 
-		return $ERROR	
+	if [ "$resultado" -eq 1 ]
+	then
+		return $OK
+	else
+		return $ERROR
 	fi
 }
+
+
+# ********************************
+# MAIN
+# ********************************
 
 glog.sh "galida" "Inicio de Ejecución." "GALIDA"
 
@@ -301,20 +217,21 @@ cantidad_archivos_aceptados=0
 
 for arch in `ls $reci`
 do
-	if [ ! -d $arch ] 
+	if [ ! -d $arch ]
 	then
 		validar_nombre_archivo $arch
 		archivo_valido="$?"
-			
-		echo "VALIDACION NOMBRE ARCHIVO: $archivo_valido"
+		
 		if [ "$archivo_valido" -eq "$OK" ]
-		then		
+		then	
+	
 			cantidad_archivos_procesados=`expr $cantidad_archivos_procesados + 1`
-			echo "ARCH PROC: $cantidad_archivos_procesados"
+			
 			echo "********************************************************************************************** "
 			echo " "
 			echo " "
 			echo "ARCHIVO $arch"	
+			echo "ARCH PROC: $cantidad_archivos_procesados"
 		
 			glog.sh "galida" "Validando archivo $arch" "GALIDA"
 	
@@ -328,10 +245,8 @@ do
 		
 				echo "El archivo esta duplicado.. lo muevo a rechazados"
 				cantidad_archivos_duplicados=`expr $cantidad_archivos_duplicados + 1`
-				cantidad_archivos_rechazados=`expr $cantidad_archivos_rechazados + 1`
 	
 				echo "ARCH DUPL: $cantidad_archivos_duplicados"
-				echo "ARCH RECH: $cantidad_archivos_rechazados"
 	
 				mover.sh "$reci/$arch" "$reci_rech" "galida" "Archivo duplicado, ya existe un archivo del mismo nombre para procesar."
 			else
@@ -341,11 +256,16 @@ do
 				resultado="$?"
 	
 				echo "ya valide los registros: $resultado"
-				if [ "$resultado" -eq "$ERROR" ]
+				if [ ! "$resultado" -eq "$OK" ]
 				then
 					mover.sh "$reci/$arch" "$reci_rech" "galida" "Archivo rechazado, algún registro no corresponde al formato adecuado"
-					echo "Muevo el archivo $arch a $reci_rech"
+
+					glog.sh "galida" "Cantidad de Registros con Error: $resultado." "GALIDA"
+	
+					echo "MUevo el archivo $arch a $reci_rech"
+					
 					cantidad_archivos_rechazados=`expr $cantidad_archivos_rechazados + 1`
+
 				else
 					mover.sh "$reci/$arch" "$reci_ok" "galida" "Archivo aceptado"
 					
