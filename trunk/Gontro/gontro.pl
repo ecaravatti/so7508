@@ -115,4 +115,4 @@ if ($corridaValida == 1) {
 	print "Uso: GONTRO [-t] [-d periodo] [area|periodo]\n";
 };
 
-exit(1);
+exit 1;
