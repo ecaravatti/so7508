@@ -242,8 +242,7 @@ sub actualizarAreaAcum {
 	
 	untie @lineasTabla or gontrosub::logFatalError("Error al desasociar $nombreArchivo");
 	
-	return;
-	
+	return;	
 }
 
 sub crearNuevoAreaAcum {
@@ -394,8 +393,10 @@ sub log {
 }
 
 sub logFatalError {
-	gontrosub::log($_);
-	die "$_";
+	my $error = shift;
+	
+	gontrosub::log("$error");
+	die "$error";
 }
 
 1;
