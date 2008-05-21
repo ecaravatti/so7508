@@ -154,7 +154,7 @@ mostrarResumenParametros()
 	printAndLog "*****************************************************************************************"
 	printAndLog "* Directorio de instalación\t\t: $GRUPO\t\t*"
 	printAndLog "* Log de la instalación\t\t\t: $GRUPO/$ARCHIVO_LOG\t*"
-	printAndLog "* Espacio disponible en \$GRUPO\t\t: $DATAFREE KB\t\t\t\t\t*"
+	printAndLog "* Espacio disponible en $GRUPO : $DATAFREE KB\t\t\t*"
 	printAndLog "* Biblioteca de ejecutables\t\t: $BINDIR\t\t*"
 	printAndLog "* Biblioteca de tablas y configuración\t: $CONFDIR\t\t*"
 	printAndLog "* Directorio de arribos\t\t\t: $ARRIDIR\t*"
@@ -447,7 +447,7 @@ iniciarGemoni()
 	comando=\$(ps | grep "\$comando_a_verificar")
 	if [ -z "\$comando" ]
 	then
-		gemoni.sh
+		gemoni.sh &
 		if [ "\$?" -eq 0 ]
 		then
 			comando=\$(ps | grep \$comando_a_verificar)
@@ -481,7 +481,7 @@ done < \$ARCHIVO_CONF_GRAL
 export GRUPO=\${vectorParametros[1]}
 export CONFDIR=\${vectorParametros[2]}
 export ANIO=\${vectorParametros[3]}
-export PATH="\$PATH:\${vectorParametros[1]:\${vectorParametros[4]}"
+export PATH="\$PATH:\${vectorParametros[1]}:\${vectorParametros[4]}"
 export ARRIDIR=\${vectorParametros[5]}
 export GASTODIR=\${vectorParametros[6]}
 export LOGDIR=\${vectorParametros[8]}
@@ -596,6 +596,10 @@ verificarComponentesInstalados()
 		fi
 	fi
 }
+
+#Le asigno permisos de ejecucion a GLOG y a MOVER
+chmod +x $GLOG
+chmod +x $MOVER
 
 # Se verifica que la variable GRUPO esté setteada
 if [ "$GRUPO" = "" ]

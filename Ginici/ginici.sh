@@ -63,7 +63,7 @@ done < $ARCHIVO_CONF_GRAL
 export GRUPO=${vectorParametros[1]}
 export CONFDIR=${vectorParametros[2]}
 export ANIO=${vectorParametros[3]}
-export PATH="$PATH:${vectorParametros[1]:${vectorParametros[4]}"
+export PATH="$PATH:${vectorParametros[1]}:${vectorParametros[4]}"
 export ARRIDIR=${vectorParametros[5]}
 export GASTODIR=${vectorParametros[6]}
 export LOGDIR=${vectorParametros[8]}
