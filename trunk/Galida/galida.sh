@@ -11,17 +11,17 @@ OK=0
 
 
 # Declaracion de paths:
-path=/home/estefania/Facu/SistemasOperativos/gastos # TODO: probar ./..
-reci=$path/arridir/reci
-reci_ok=$path/gastodir/reci/ok
-reci_rech=$path/gastodir/reci/rech
-a_procesar=$path/gastodir/aproc
-log=$path/logdir
-gastos_conf=$path/confdir/gastos.conf
-conceptos_x_area=$path/confdir/cxa.tab
+path=$GRUPO #/home/estefania/Facu/SistemasOperativos/gastos # TODO: probar ./..
+reci=$ARRIDIR/reci
+reci_ok=$GASTODIR/reci/ok
+reci_rech=$GASTODIR/reci/rech
+a_procesar=$GASTODIR/aproc
+log=$LOGIDIR
+gastos_conf=$CONFDIR/gastos.conf
+conceptos_x_area=$CONFDIR/cxa.tab
 
-PATH=$PATH:/home/estefania/Facu/SistemasOperativos/gastos/bin
-export PATH
+#PATH=$PATH:/home/estefania/Facu/SistemasOperativos/gastos/bin
+#export PATH
 
 
 # Recibe el archivo a ordenar en $1 y deja el ordenado en $a_procesar
@@ -207,6 +207,14 @@ validar_nombre_archivo()
 # ********************************
 # MAIN
 # ********************************
+if [ $GINICIEXEC -eq "" ]
+then
+	echo "No se encuentra el entorno inicializado."
+	echo "Instale GINSTA e intente nuevamente."
+
+	exit 1
+fi
+
 
 glog.sh "galida" "Inicio de Ejecución." "GALIDA"
 
@@ -217,7 +225,7 @@ cantidad_archivos_aceptados=0
 
 for arch in `ls $reci`
 do
-	if [ ! -d $arch ]
+	if [ ! -d $reci/$arch ]
 	then
 		validar_nombre_archivo $arch
 		archivo_valido="$?"
@@ -275,6 +283,9 @@ do
 					cantidad_archivos_aceptados=`expr $cantidad_archivos_aceptados + 1`
 				fi
 			fi
+		else
+			glog.sh "galida" "Archivo rechazado, nombre invalido: $arch." "GALIDA"
+			mover.sh "$reci/$arch" "$reci_rech" "galida"
 		fi
 	fi
 done

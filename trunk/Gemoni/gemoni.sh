@@ -5,16 +5,16 @@ dormir=5
 ERROR=1
 OK=0
 
-PATH=$PATH:/home/estefania/Facu/SistemasOperativos/gastos/bin
-export PATH
+# PATH=$PATH:/home/estefania/Facu/SistemasOperativos/gastos/bin
+# export PATH
 
 # Paths
-path=/home/estefania/Facu/SistemasOperativos/gastos
-arridir=$path/arridir
-area_tab=$path/confdir/area.tab
-gastos_conf=$path/confdir/gastos.conf
-reci=$arridir/reci
-noreci=$arridir/noreci
+path=$GRUPO #/home/estefania/Facu/SistemasOperativos/gastos
+arridir=$ARRIDIR
+area_tab=$CONFDIR/area.tab
+gastos_conf=$CONFDIR/gastos.conf
+reci=$ARRIDIR/reci
+noreci=$ARRIDIR/noreci
 
 #Recibe el nombre del archivo
 validar_anio()
@@ -110,6 +110,28 @@ validar_nombre_archivo()
 	fi
 }
 
+archivos_en_reci()
+{
+	local cant_archivos_en_reci=$(ls -l $reci | wc -l)
+
+	echo "ARCHIVOS EN RECI****************** $cant_archivos_en_reci"
+	# Hay 2 carpetas en ese directorio.
+	if [ $cant_archivos_en_reci -gt 3 ]
+	then
+		return $OK
+	fi
+	
+	return $ERROR
+}
+
+if [ "$GINICIEXEC" == "" ]
+then
+	echo "No se encuentra el entorno inicializado."
+	echo "Ejecute GINICI e intente nuevamente."
+
+	exit 1
+fi
+
 
 while true
 do
@@ -117,7 +139,7 @@ echo "$arridir"
 	for archi in `ls $arridir`
 	do
 		
-		if [ ! -d $archi ] 
+		if [ ! -d $arridir/$archi ] 
 		then
 
 			echo "archivo es: $archi"
@@ -129,21 +151,26 @@ echo "$arridir"
 			then
 
 				echo "recibi $archi"
-				mover.sh "$arridir/$archi" "$reci"
+				mover.sh "$arridir/$archi" "$reci" "gemonilog"
 			else
 				echo "no recibi $archi"
-				mover.sh "$arridir/$archi" "$noreci"
+				mover.sh "$arridir/$archi" "$noreci" "gemonilog"
 			fi
 		fi
 	done
 
+	
 	# se fija si esta corriendo galida.sh
 	galida_corriendo=$( ps aux | grep -c galida )	
+	# Se fija si hay archivos en reci
+	archivos_en_reci
+	
+	hay_archivos="$?"
 
 	echo "galida_corriendo: $galida_corriendo"
 
 
-	if [ $galida_corriendo -lt 2 ] 
+	if [ "$galida_corriendo" -lt 2 ] && [ "$hay_archivos" -eq "$OK" ] 
 	then
 		galida.sh &
 	else
