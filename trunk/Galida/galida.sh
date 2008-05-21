@@ -30,7 +30,7 @@ ordenar_archivo()
 	# ordena por el campo 1, luego por el 3 y luego por el 2. Usa como delimitador al caracter ";"
 	sort -o "$reci_ok/$arch.ord" -t';' +0 -1 +2 -3 +1 -n "$reci_ok/$arch"
 	
-	echo "ya ordene el archivo."
+#	echo "ya ordene el archivo."
 	rm $reci_ok/$arch
 
 	mover.sh "$reci_ok/$arch.ord" "$a_procesar" "galida"
@@ -47,10 +47,10 @@ validar_bisiesto()
 # Recibe el id concepto
 validar_concepto()
 {
-	echo "estoy en validar_concepto. Quiero buscar $1 en: $conceptos_x_area"
+#	echo "estoy en validar_concepto. Quiero buscar $1 en: $conceptos_x_area"
 	local concepto_encontrado=$(cut -d';' -f 2 $conceptos_x_area | grep -c "^$1$")
 
-	echo " si $concepto_encontrado es cero no hubo match con el grep"
+#	echo " si $concepto_encontrado es cero no hubo match con el grep"
 	
 	if [ "$concepto_encontrado" -eq 0 ]
 	then 
@@ -95,10 +95,10 @@ validar_importe()
 		
 		if [ "$importe_valido" -eq 1 ]
 		then 
-			echo "importe nulo"
+#			echo "importe nulo"
 			return $ERROR
 		fi
-		echo "importe no nulo"
+#		echo "importe no nulo"
 		return $OK
 	else
 		return $ERROR
@@ -116,9 +116,9 @@ validar_registros_archivo()
 	do
 		numero_registro=`expr $numero_registro + 1`
 		
-		echo "linea $numero_registro: $linea"
+#		echo "linea $numero_registro: $linea"
 		cantidad_campos=$(echo $linea | awk -F';' '{print NF}')
-		echo "cant campos: $cantidad_campos"
+#		echo "cant campos: $cantidad_campos"
 				
 		if [ "$cantidad_campos" -eq 4 ]
 		then
@@ -165,7 +165,7 @@ validar_registros_archivo()
 			# TODO: Validar comprobante
 
 		else
-			echo "Cant de campos invalida"
+#			echo "Cant de campos invalida"
 			glog.sh "galida" "El registro $numero_registro es rechazado debido a cantidad de campos invalida." "GALIDA"
 			cantidad_registros_erroneos=`expr $cantidad_registros_erroneos + 1`
 			continue
@@ -179,7 +179,7 @@ validar_registros_archivo()
 # Si el archivo ordenado existe (ya fue procesado), devuelve ERROR, de lo contrario devuelve OK
 verificar_archivo_ordenado()
 {
-	echo "estoy verificando el arch ordenado $1"
+#	echo "estoy verificando el arch ordenado $1"
 	local existe=$(ls -l $a_procesar | grep -c "$1.ord")
 	if [ "$existe" -eq 1 ]
 	then
@@ -207,7 +207,7 @@ validar_nombre_archivo()
 # ********************************
 # MAIN
 # ********************************
-if [ $GINICIEXEC -eq "" ]
+if [ "$GINICIEXEC" -eq "" ]
 then
 	echo "No se encuentra el entorno inicializado."
 	echo "Instale GINSTA e intente nuevamente."
@@ -235,49 +235,49 @@ do
 	
 			cantidad_archivos_procesados=`expr $cantidad_archivos_procesados + 1`
 			
-			echo "********************************************************************************************** "
-			echo " "
-			echo " "
-			echo "ARCHIVO $arch"	
-			echo "ARCH PROC: $cantidad_archivos_procesados"
+#			echo "********************************************************************************************** "
+#			echo " "
+#			echo " "
+#			echo "ARCHIVO $arch"	
+#			echo "ARCH PROC: $cantidad_archivos_procesados"
 		
 			glog.sh "galida" "Validando archivo $arch" "GALIDA"
 	
 			verificar_archivo_ordenado $arch
 			resultado="$?"
 		
-			echo "verificar_archivo_ordenado: $resultado"
+#			echo "verificar_archivo_ordenado: $resultado"
 		
 			if [ "$resultado" -eq "$ERROR" ]
 			then
 		
-				echo "El archivo esta duplicado.. lo muevo a rechazados"
+#				echo "El archivo esta duplicado.. lo muevo a rechazados"
 				cantidad_archivos_duplicados=`expr $cantidad_archivos_duplicados + 1`
 	
-				echo "ARCH DUPL: $cantidad_archivos_duplicados"
+#				echo "ARCH DUPL: $cantidad_archivos_duplicados"
 	
 				mover.sh "$reci/$arch" "$reci_rech" "galida" "Archivo duplicado, ya existe un archivo del mismo nombre para procesar."
 			else
-				echo "El arch no existe, voy a validar los registros."
+#				echo "El arch no existe, voy a validar los registros."
 				
 				validar_registros_archivo $arch
 				resultado="$?"
 	
-				echo "ya valide los registros: $resultado"
+#				echo "ya valide los registros: $resultado"
 				if [ ! "$resultado" -eq "$OK" ]
 				then
 					mover.sh "$reci/$arch" "$reci_rech" "galida" "Archivo rechazado, algún registro no corresponde al formato adecuado"
 
 					glog.sh "galida" "Cantidad de Registros con Error: $resultado." "GALIDA"
 	
-					echo "MUevo el archivo $arch a $reci_rech"
+#					echo "MUevo el archivo $arch a $reci_rech"
 					
 					cantidad_archivos_rechazados=`expr $cantidad_archivos_rechazados + 1`
 
 				else
 					mover.sh "$reci/$arch" "$reci_ok" "galida" "Archivo aceptado"
 					
-					echo "MUevo el archivo $arch a $reci_ok"
+#					echo "MUevo el archivo $arch a $reci_ok"
 	
 					ordenar_archivo $arch
 					cantidad_archivos_aceptados=`expr $cantidad_archivos_aceptados + 1`
@@ -293,16 +293,16 @@ done
 # se fija si esta corriendo gontro.pl
 gontro_corriendo=$( ps aux | grep -c gontro )	
 
-echo "gontro_corriendo: $gontro_corriendo"
+#echo "gontro_corriendo: $gontro_corriendo"
 
 if [ $gontro_corriendo -lt 2 ] 
 then
-	echo "perl gontro.pl &" #TODO: llamarlo posta!
+	echo "perl -w gontro.pl &" # TODO: llamarlo posta!
 else
-	echo "esta corriendo gontro!"
+	echo "no lanzo gontro!"
 fi
 
-echo "PROCESADOS: $cantidad_archivos_procesados DUPLICADOS:$cantidad_archivos_duplicados RECHAZADOS:$cantidad_archivos_rechazados ACEPTADOS: $cantidad_archivos_aceptados"
+#echo "PROCESADOS: $cantidad_archivos_procesados DUPLICADOS:$cantidad_archivos_duplicados RECHAZADOS:$cantidad_archivos_rechazados ACEPTADOS: $cantidad_archivos_aceptados"
 
 glog.sh "galida" "Cantidad de archivos procesados: $cantidad_archivos_procesados" "GALIDA"
 glog.sh "galida" "Cantidad de archivos duplicados: $cantidad_archivos_duplicados" "GALIDA"

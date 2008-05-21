@@ -31,8 +31,8 @@ then
 	exit 2
 else
 	comando=`echo "$3" | sed 's/\.sh$//'` #Le saco el .sh si es que lo tiene
-	mensaje="`date +%D\ %T` - `basename "$comando"` - `whoami` - "$2""
-	echo -e $mensaje >> $ARCHIVO_LOG
+	mensaje="`date +%D\ %T` - `basename "$comando"` - `whoami` - $2"
+	echo -e "$mensaje" >> "$ARCHIVO_LOG"
 
 	if [ "$LOGSIZE" != "" ]
 	then
