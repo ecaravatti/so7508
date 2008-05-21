@@ -23,6 +23,9 @@ use strict;
 use warnings;
 use gontrosub;
 
+#Chequear que el entorno haya sido inicializado
+gontrosub::estaEntornoInicializado() or gontrosub::logFatalError("El proceso no puede ser iniciado. Entorno no inicializado.");
+
 #Obtencion del numero de corrida
 my $procnum = gontrosub::getProcNum();
 
@@ -55,39 +58,39 @@ if ($corridaValida == 1) {
    		(/$ENV{'GASTODIR'}\/aproc\/(\d{6}).(\d{6}).ord/) && ($area = $1) && ($periodo = $2);
    		
    		#Obtener presupuesto mensual y gasto acumulado para el area/periodo
-      		$presupuestoMensual = gontrosub::getPresupuestoMensual($area, "$ENV{'CONFDIR'}/area.tab");
-      		$gastoAcumulado = gontrosub::getGastoAcumulado($area, $periodo, "$ENV{'CONFDIR'}/area.acum");
+      	$presupuestoMensual = gontrosub::getPresupuestoMensual($area, "$ENV{'CONFDIR'}/area.tab");
+      	$gastoAcumulado = gontrosub::getGastoAcumulado($area, $periodo, "$ENV{'CONFDIR'}/area.acum");
       	
-      		#Obtener conceptos por area (montos maximos y repeticiones)
-      		@conceptos = gontrosub::getConceptos($area, "$ENV{'CONFDIR'}/cxa.tab");
+      	#Obtener conceptos por area (montos maximos y repeticiones)
+      	@conceptos = gontrosub::getConceptos($area, "$ENV{'CONFDIR'}/cxa.tab");
       
-      		#Obtener conceptos acumulados por area y periodo(montos maximos y repeticiones)
-      		@conceptosAcumulados = gontrosub::getConceptosAcumulados($area, $periodo, "$ENV{'CONFDIR'}/cxa.acum");
+      	#Obtener conceptos acumulados por area y periodo(montos maximos y repeticiones)
+      	@conceptosAcumulados = gontrosub::getConceptosAcumulados($area, $periodo, "$ENV{'CONFDIR'}/cxa.acum");
 
-      		#Crear estructura de datos para el procesamiento de archivo
-      		@datosArchivoGastos = ($_, $presupuestoMensual, $gastoAcumulado, @conceptos, @conceptosAcumulados);
+      	#Crear estructura de datos para el procesamiento de archivo
+      	@datosArchivoGastos = ($_, $presupuestoMensual, $gastoAcumulado, @conceptos, @conceptosAcumulados);
       	
-      		#Procesamiento de los registros del archivo de gastos
-      		($montoExtraordinario, $gastosExtraordinarios,
-      		$montoNormal, $gastosNormales,
-      		$nuevosMontosxConcepto, $nuevasRepeticionesxConcepto) = gontrosub::procesarArchivoGastos(@datosArchivoGastos);
+      	#Procesamiento de los registros del archivo de gastos
+      	($montoExtraordinario, $gastosExtraordinarios,
+      	$montoNormal, $gastosNormales,
+      	$nuevosMontosxConcepto, $nuevasRepeticionesxConcepto) = gontrosub::procesarArchivoGastos(@datosArchivoGastos);
 
-      		#Si la corrida es definitiva, actualizar las acumulaciones y generar los archivos de gastos 
-      		if ($tipoCorrida eq "-d") {
-				gontrosub::actualizarArea($area, $periodo, $gastoAcumulado + $montoExtraordinario + $montoNormal, "$ENV{'CONFDIR'}/area.acum");
+      	#Si la corrida es definitiva, actualizar las acumulaciones y generar los archivos de gastos 
+      	if ("$tipoCorrida" eq "-d") {
+			gontrosub::actualizarArea($area, $periodo, $gastoAcumulado + $montoExtraordinario + $montoNormal, "$ENV{'CONFDIR'}/area.acum");
 				
-				gontrosub::actualizarCxA($area, $periodo, $nuevosMontosxConcepto, $nuevasRepeticionesxConcepto, "$ENV{'CONFDIR'}/cxa.acum");
+			gontrosub::actualizarCxA($area, $periodo, $nuevosMontosxConcepto, $nuevasRepeticionesxConcepto, "$ENV{'CONFDIR'}/cxa.acum");
 				
-				gontrosub::generarArchivoGN($gastosNormales, "$ENV{'GASTODIR'}/proc/$area.gn") if @{$gastosNormales} > 0; 
+			gontrosub::generarArchivoGN($gastosNormales, "$ENV{'GASTODIR'}/proc/$area.gn") if @{$gastosNormales} > 0; 
 				
-				gontrosub::generarArchivoGE($gastosExtraordinarios, "$ENV{'CONFDIR'}/proc/$area.ge", "$ENV{'CONFDIR'}/motivos.tab") if @{$gastosExtraordinarios} > 0;
+			gontrosub::generarArchivoGE($gastosExtraordinarios, "$ENV{'CONFDIR'}/proc/$area.ge", "$ENV{'CONFDIR'}/motivos.tab") if @{$gastosExtraordinarios} > 0;
 				
-				`mover.sh $_ $ENV{'GASTODIR'}/proc/$area.$periodo.ord gontrolog`;
-	      		}      	
+			`mover.sh $_ $ENV{'GASTODIR'}/proc/$area.$periodo.ord gontrolog`;
+	     }      	
 		
       	#Generar informe final y mostrarlo por pantalla
       	gontrosub::generarInforme($area, $periodo, $presupuestoMensual,
-      				$gastoAcumulado,      				$#{$gastosExtraordinarios}, $montoExtraordinario,
+      				$gastoAcumulado,$#{$gastosExtraordinarios}, $montoExtraordinario,
       				$#{$gastosNormales}, $montoNormal,
       				"$ENV{'GRUPO'}/informe.proc" . "$procnum");
    	}

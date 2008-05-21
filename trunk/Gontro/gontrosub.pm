@@ -20,12 +20,17 @@
 use Tie::File;
 package gontrosub;
 
+sub estaEntornoInicializado {
+	return 1 if exists $ENV{'GINICIEXEC'}; 
+	
+	return 0;	
+}
+
 sub getProcNum {
 	my $procnum = $ENV{'GPROCNUM'};
 	$ENV{'GPROCNUM'} = $procnum + 1;		
 
 	return $procnum;
-
 }
 
 sub getTipoCorrida {
@@ -71,13 +76,14 @@ sub getPresupuestoMensual {
     my $nomArchivoArea = shift;
     my $presupuestoMensual = 0;
     
-    open(my $tablaAreas, $nomArchivoArea) or die "$!";
+    open(my $tablaAreas, $nomArchivoArea) or gontrosub::logFatalError("Error al abrir archivo $nomArchivoArea");
 
     foreach( <$tablaAreas> ) {
-    	last if ( (/$area;.*;(\d+\.\d{2}|\d+)(\n|$)/) && ($presupuestoMensual = $1) );
+    	chomp;
+    	last if ( (/$area;.*;(\d+\.?\d{2}?)/) && ($presupuestoMensual = $1) );
     }
     
-    close $tablaAreas or die "$!";
+    close $tablaAreas or gontrosub::logFatalError("Error al cerrar archivo $nomArchivoArea");
     
     return $presupuestoMensual;
 }
@@ -86,13 +92,17 @@ sub getGastoAcumulado {
     my ($area, $periodo, $nombreArchivoAcum) = (shift, shift, shift);
     my $presupuestoMensual = 0;
     
-    open(my $acumuladoAreas, $nombreArchivoAcum) or die "$!";
+    return () unless (-f "$nombreArchivoAcum");
+    
+    open(my $acumuladoAreas, "$nombreArchivoAcum") or gontrosub::logFatalError("Error al abrir $nombreArchivoAcum");
     
     foreach( <$acumuladoAreas> ) {
-    	last if ( (/$area;$periodo;(\d+\.\d{2}|\d+)/) && ($gastoAcumulado = $1) );
+    	chomp;
+    	last if ( (/$area;$periodo;(\d+\.?\d{2}?)/) && ($gastoAcumulado = $1) );
     }
     
-    close $acumuladoAreas;
+    close $acumuladoAreas or gontrosub::logFatalError("Error al cerrar archivo $nombreArchivoAcum");
+  
 
     return $gastoAcumulado;
 }
@@ -101,16 +111,17 @@ sub getConceptos {
     my ($area, $nombreArchivoCxA) = (shift, shift);
     my (%montoxConcepto, %montoxComprobante, %limiteRepeticiones) = ();
 
-    open(my $tablaCxA, $nombreArchivoCxA) or die "$!";
+    open(my $tablaCxA, "$nombreArchivoCxA") or gontrosub::logFatalError("Error al abrir $nombreArchivoCxA");
    
     foreach( <$tablaCxA> ) {
-    	(/$area;(\d{6});(\d+\.\d{2}|\d+);(\d+\.\d{2}|\d+);(\d{5})/) &&
+    	chomp;
+    	(/$area;(\d{6});(\d+\.?\d{2}?);(\d+\.?\d{2}?);(\d{5})/) &&
     	( $montoxConcepto{$1} = $3) &&
        	( $montoxComprobante{$1} = $2) &&
        	( $limiteRepeticiones{$1} = $4);
     }
         
-    close $tablaCxA or die "$!";
+    close $tablaCxA or gontrosub::logFatalError("Error al cerrar $nombreArchivoCxA");
 
     return (\%montoxConcepto, \%montoxComprobante, \%limiteRepeticiones);
 }
@@ -118,16 +129,19 @@ sub getConceptos {
 sub getConceptosAcumulados {
     my ($area, $periodo, $nombreArchivoCxA) = (shift, shift, shift);
     my (%montoxConcepto, %repeticiones) = ();
-
-    open(my $tablaCxAAcum, $nombreArchivoCxA) or die "$!";
+	
+	return () unless (-f "$nombreArchivoCxA");
+	
+    open(my $tablaCxAAcum, ">$nombreArchivoCxA") or gontrosub::logFatalError("Error al abrir $nombreArchivoCxA");
 
     foreach( <$tablaCxAAcum> ) {
-    	(/$area;(\d{6});$periodo;(\d+\.\d{2}|\d+);(\d{5})/) && 
+    	chomp;
+    	(/$area;(\d{6});$periodo;(\d+\.?\d{2}?);(\d{5})/) && 
     	($montoxConcepto{$1} = $2) &&
     	($repeticiones{$1} = $3);
    	}
 
-    close $tablaCxAAcum or die "$!";
+    close $tablaCxAAcum or gontrosub::logFatalError("Error al cerrar $nombreArchivoCxA");
 
     return (\%montoxConcepto, \%repeticiones);
 }
@@ -150,12 +164,13 @@ sub procesarArchivoGastos {
     my ($montoNormal, $montoExtraordinario) = (0, 0);
     my $fecha = "09072008"; #/TODO De donde se saca la fecha?
     
-    open (my $archivoGastos, $nombreArchivo) or die "$!";
+    open (my $archivoGastos, "$nombreArchivo") or gontrosub::logFatalError("Error al abrir $nombreArchivo");
         
     foreach ( <$archivoGastos> ){
+    	chomp;
     	$motivoPrincipal = $motivoSecundario = $esExtraordinario = 0;
     	
-    	/(\d{2});(.+);(\d{6});(\d+\.\d+|\d+)/;
+    	/(\d{2});(.+);(\d{6});(\d+\.?\d{2}?)/;
 
         #Gasto acumulado no debe exceder el presupuesto mensual
         $gastoAcumulado += $4;
@@ -207,24 +222,83 @@ sub procesarArchivoGastos {
         }
    }
    
-   close $archivoGastos or die "$!";
+   close $archivoGastos or gontrosub::logFatalError("Error al cerrar $nombreArchivo");
    
    return ( $montoExtraordinario, \@gastosExtraordinarios,  
    			$montoNormal, \@gastosNormales,
    			$montoxConceptoAcumulado, $repeticionesxConcepto);
 }
 
-sub actualizarArea {
+sub actualizarAreaAcum {
 	my ($area, $periodo, 
-		$nuevoMonto, $nombreArchivo) = (shift, shift, shift, shift);
+	$nuevoMonto, $nombreArchivo) = (shift, shift, shift, shift);
 	
-	tie my @lineasTabla, 'Tie::File', $nombreArchivo or die "No se pude asociar el archivo $nombreArchivo: $!";
+	tie my @lineasTabla, 'Tie::File', $nombreArchivo or gontrosub::logFatalError("Error al asociar el archivo $nombreArchivo");
 	
 	foreach ( @lineasTabla ){
-		last if (s/$area;$periodo;(\d+\.\d+|\d+)/$area;$periodo;$nuevoMonto/g);
+		chomp;
+		last if (s/$area;$periodo;(\d+\.?\d{2}?)/$area;$periodo;$nuevoMonto/g);
 	}
 	
-	untie @lineasTabla or die "$!";
+	untie @lineasTabla or gontrosub::logFatalError("Error al desasociar $nombreArchivo");
+	
+	return;
+	
+}
+
+sub crearNuevoAreaAcum {
+	my @nuevoRegistro = (shift, shift, shift);
+	my $nombreArchivo = shift;
+	
+	open my $archivoAreaAcum, ">>$nombreArchivo" or gontrosub::logFatalError("Error al abrir el archivo $nombreArchivo");
+	print $archivoAreaAcum join(';', @nuevoRegistro);	
+	close $archivoAreaAcum or gontrosub::logFatalError("Error al cerrar el archivo $nombreArchivo");
+		
+	return;
+}
+sub actualizarArea {
+	my ($area, $periodo, 
+	$nuevoMonto, $nombreArchivo) = (shift, shift, shift, shift);
+	
+	if ( -f "$nombreArchivo" ){
+		gontrosub::actualizarAreaAcum($area, $periodo, $nuevoMonto, $nombreArchivo);
+	} else {
+		gontrosub::crearNuevoAreaAcum($area, $periodo, $nuevoMonto, $nombreArchivo);	
+	}
+	
+	return;
+}
+
+sub actualizarCxAAcum {
+	my ($area, $periodo, 
+	$nuevosMontos, $nuevasRepeticiones,
+	$nombreArchivo) = (shift, shift, shift, shift, shift);
+	
+	tie my @lineasTabla, 'Tie::File', $nombreArchivo or gontrosub::logFatalError("No se pudo asociar el archivo $nombreArchivo");
+
+	foreach ( @lineasTabla ){
+		chomp;
+		s/$area;(\d{6});$periodo;(\d+\.?\d{2}?);\d{5}/$area;$1;$periodo;$nuevosMontos->{$1};$nuevasRepeticiones->{$1}/g;			
+	}
+	
+	untie @lineasTabla or gontrosub::logFatalError("Error al asociar el archivo $nombreArchivo");
+
+	return;
+	
+}
+
+sub crearNuevoCxAAcum {
+	my ($area, $periodo, 
+	$nuevosMontos, $nuevasRepeticiones,
+	$nombreArchivo) = (shift, shift, shift, shift, shift);
+	
+	open my $archivoCxA, ">>$nombreArchivo" or gontrosub::logFatalError("Error al abrir el archivo $nombreArchivo");
+	
+	foreach my $concepto (keys %{$nuevosMontos}){
+		print $archivoCxA "$area;$concepto;$periodo;$nuevosMontos->{$concepto};$nuevasRepeticiones->{$concepto}\n";	
+	}
+	
+	close $archivoCxA or gontrosub::logFatalError("Error al cerrar el archivo $nombreArchivo");
 	
 	return;
 }
@@ -232,29 +306,25 @@ sub actualizarArea {
 sub actualizarCxA {
 	my ($area, $periodo, 
 		$nuevosMontos, $nuevasRepeticiones,
-		$nombreArchivo) = (shift, shift, shift, shift, shift);
-	
-	tie my @lineasTabla, 'Tie::File', $nombreArchivo or die "No se pude asociar el archivo $nombreArchivo: $!";
-
-	foreach ( @lineasTabla ){
-		s/$area;(\d{6});$periodo;(\d+\.\d+|\d+);\d{5}/$area;$1;$periodo;$nuevosMontos->{$1};$nuevasRepeticiones->{$1}/g;			
-	}
-	
-	untie @lineasTabla or die "$!";
-
-	return;
+		$nombreArchivo) = (shift, shift, shift, shift, shift);	
+		
+	if ( -f "$nombreArchivo" ){
+		gontrosub::actualizarCxAAcum($area, $periodo, $nuevosMontos, $nuevasRepeticiones, $nombreArchivo);
+	} else {
+		gontrosub::crearNuevoCxAAcum($area, $periodo, $nuevosMontos, $nuevasRepeticiones, $nombreArchivo);	
+	}	
 }
 
 sub generarArchivoGN {
 	my ($gastosNormales, $nombreArchivo) = (shift, shift);
 	
-	open (my $archivoGN, ">> $nombreArchivo") or die "$!";
+	open (my $archivoGN, ">> $nombreArchivo") or gontrosub::logFatalError("Error al abrir archivo $nombreArchivo");
 	
 	foreach my $camposRegGN (@{$gastosNormales}){
-		print $archivoGN "$camposRegGN->[0];$camposRegGN->[1];$camposRegGN->[2];$camposRegGN->[3]\n";		
+		print $archivoGN join(';',@{$camposRegGN});#"$camposRegGN->[0];$camposRegGN->[1];$camposRegGN->[2];$camposRegGN->[3]\n";		
 	}
 
-	close $archivoGN or die "$!";
+	close $archivoGN or gontrosub::logFatalError("Error al cerrar archivo $archivoGN");
 
 	return ;
 }
@@ -263,14 +333,15 @@ sub generarArchivoGE {
 	my ($gastosExtraordinarios, $nombreArchivoGE, $nombreArchivoMotivos) = (shift, shift, shift);
 	my ($motivoPrincipal, $motivoSecundario) = (0, 0);
 	
-	open (my $archivoGE, ">> $nombreArchivoMotivos") or die "$!";
-	open (my $archivoMotivos, $nombreArchivoMotivos) or die "$!";
+	open (my $archivoGE, ">> $nombreArchivoGE") or gontrosub::logFatalError("Error al abrir archivo $nombreArchivoGE");
+	open (my $archivoMotivos, $nombreArchivoMotivos) or gontrosub::logFatalError("Error al abrir archivo $nombreArchivoMotivos");
 	
 	foreach my $camposRegGE (@{$gastosExtraordinarios}){
 		$motivoPrincipal = $motivoSecundario = 0;
-		print $archivoGE "$camposRegGE->[0];$camposRegGE->[1];$camposRegGE->[2];$camposRegGE->[3];";
+		print $archivoGE join(';',@{$camposRegGE});#"$camposRegGE->[0];$camposRegGE->[1];$camposRegGE->[2];$camposRegGE->[3];";
 		
 		foreach ( <$archivoMotivos> ){
+			chomp;
 			/$camposRegGE->[4];(.+)/ && ($motivoPrincipal = $1);
 			/$camposRegGE->[5];(.+)/ && ($motivoSecundario = $1); 
 			last if $motivoPrincipal && $motivoSecundario;
@@ -282,8 +353,8 @@ sub generarArchivoGE {
 		print $archivoGE "$motivoPrincipal;$motivoSecundario\n";		
 	}
 	
-	close $archivoGE or die "$!";
-	close $archivoMotivos or die "$!";
+	close $archivoGE or gontrosub::logFatalError("Error al cerrar archivo $nombreArchivoGE");
+	close $archivoMotivos or gontrosub::logFatalError("Error al cerrar archivo $nombreArchivoMotivos");
 		
 	return ;
 }
@@ -302,7 +373,7 @@ sub generarInforme {
 	$cantNormales = 0 if $cantNormales < 0;
 	$cantExtraordinarios = 0 if $cantExtraordinarios < 0;
 	
-	open (my $informe, ">> $nombreInforme") or die "$!";
+	open (my $informe, ">> $nombreInforme") or gontrosub::logFatalError("Error al abrir archivo $nombreInforme");
 		
 	print $informe "\nInforme de control del rea $area para el periodo $periodo\n";
 	print $informe "Presupuesto Mensual del area: $presupuestoMensual\n";
@@ -311,7 +382,7 @@ sub generarInforme {
 	print $informe "Cantidad de Registros y Total de Gastos normales procesados: $cantNormales $montoNormal\n";
 	print $informe "Cantidad de Registros y Total de Gastos extraordinarios: $cantExtraordinarios $montoExtraordinario\n";
 	
-	close $informe or die "$!";
+	close $informe or gontrosub::logFatalError("Error al cerrar $nombreInforme");
 }
 
 sub log {
@@ -322,5 +393,9 @@ sub log {
 	return;
 }
 
+sub logFatalError {
+	gontrosub::log($_);
+	die "$_";
+}
 
 1;
