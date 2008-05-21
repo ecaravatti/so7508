@@ -36,18 +36,22 @@ else
 
 	if [ "$LOGSIZE" != "" ]
 	then
-		if [ `expr $(stat -c%s "$ARCHIVO_LOG") / 1024` -ge $LOGSIZE ]
+		if [ "$ARCHIVO_LOG" != "/dev/stdout" ]
 		then
-			IFSOriginal=$IFS
-			IFS=$'\t\n ' #IFS default, lo setteo por las dudas que quien me invoca lo tenga cambiado
-			cant_lineas=(`wc -l "$ARCHIVO_LOG"`)
-			IFS=$IFSOriginal
-			if [ $cant_lineas -gt 70 ]
+			echo "asdasdas"
+			if [ `expr $(stat -c%s "$ARCHIVO_LOG") / 1024` -ge $LOGSIZE ]
 			then
-				ultima_linea=$(expr $cant_lineas - 70)
-				sed "1,$ultima_linea d" <"$ARCHIVO_LOG" >"$ARCHIVO_LOG".temp
-				mv "$ARCHIVO_LOG".temp "$ARCHIVO_LOG"
-			fi
+				IFSOriginal=$IFS
+				IFS=$'\t\n ' #IFS default, lo setteo por las dudas que quien me invoca lo tenga cambiado
+				cant_lineas=(`wc -l "$ARCHIVO_LOG"`)
+				IFS=$IFSOriginal
+				if [ $cant_lineas -gt 70 ]
+				then
+					ultima_linea=$(expr $cant_lineas - 70)
+					sed "1,$ultima_linea d" <"$ARCHIVO_LOG" >"$ARCHIVO_LOG".temp
+					mv "$ARCHIVO_LOG".temp "$ARCHIVO_LOG"
+				fi
+			fi	
 		fi
 	fi
 
