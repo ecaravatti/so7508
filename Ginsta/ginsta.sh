@@ -57,7 +57,6 @@ readAndLog()
 {
 	read $1
 	eval aux=\$$1
-	echo -e "$aux" >> "$GRUPO/$ARCHIVO_LOG"
 	"./$GLOG" "$ARCHIVO_LOG" "$aux" "$NOMBRE_COMANDO"
 }
 
@@ -437,6 +436,15 @@ ARCHIVO_CONF="ginici.conf"
 
 FIN_OK=0
 ERROR_GEMONI=1
+ARCHIVO_LOG=ginicilog
+NOMBRE_COMANDO=GINICI
+GLOG=glog.sh
+
+printAndLog()
+{
+	echo -e "\$1"
+	"./\$GLOG" "\$ARCHIVO_LOG" "\$1" "\$NOMBRE_COMANDO"
+}
 
 # La siguiente función ejecuta GEMONI (si éste no se encuentra corriendo).
 # Si el comando ya esta corriendo, muestra por pantalla un mensaje que indica cuanto hace que se esta corriendo.
@@ -448,12 +456,12 @@ iniciarGemoni()
 	if [ -z "\$comando" ]
 	then
 		gemoni.sh &
-		if [ "\$?" -eq 0 ]
+		if [ \$? -eq 0 ]
 		then
-			comando=\$(ps | grep \$comando_a_verificar)
+			comando=\$(ps | grep "\$comando_a_verificar")
 			id=\$(echo \$comando | cut -d ' ' -f1)
-			echo "****************************************************************
-* Demonio corriendo bajo el número: \$id	       *
+			echo -e "****************************************************************
+* Demonio corriendo bajo el número: \$id\\t\\t\\t*
 ****************************************************************"
 			return \$FIN_OK
 		else
@@ -491,6 +499,48 @@ export LOGSIZE=\`echo "\${vectorParametros[10]}" | sed 's/ KB$//'\`
 # Se settea una variable de control para saber si GINICI fue ejecutado
 export GINICIEXEC=1
 export GPROCNUM=0
+
+case "\$1" in
+"-var")
+	eval aux=\\\$\$2
+	printAndLog "\$2=\`echo \$aux\`"
+	exit \$FIN_OK
+	;;
+"-id")
+	comando_a_verificar="\$2"
+	comando=\$(ps | grep "\$comando_a_verificar")
+	if [ ! -z "\$comando" ]
+	then
+		id=\$(echo \$comando | cut -d ' ' -f1)
+		printAndLog "Comando \$2 corriendo bajo el id \$id"
+		exit \$FIN_OK
+	else
+		printAndLog "El comando \$2 no esta corriendo"
+		exit 2
+	fi
+	;;
+"-kill")
+	comando_a_matar="\$2"
+	comando=\$(ps | grep "\$comando_a_matar")
+	if [ ! -z "\$comando" ]
+	then
+		killall \$comando_a_matar
+		if [ \$? == 0 ]
+		then
+			printAndLog "El comando \$2 fue terminado satisfactoriamente"
+			exit \$FIN_OK
+		else
+			printAndLog "No se pudo terminar el comando \$2"
+			exit 3
+		fi
+	else
+		printAndLog "El comando \$2 no esta corriendo"
+		exit 4
+	fi
+	;;
+*)
+	;;
+esac
 
 # Se invoca a GEMONI (si es que no se encuentra corriendo)
 iniciarGemoni
