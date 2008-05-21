@@ -5,7 +5,7 @@
 #$3 (Opcional) = Archivo de log del comando que la invoca
 #$4 (Opcional) = Información adicional
 
-GLOG=glog.sh
+GLOG=./glog.sh
 
 if [ $# -lt 2 ]
 then
