@@ -38,7 +38,6 @@ else
 	then
 		if [ "$ARCHIVO_LOG" != "/dev/stdout" ]
 		then
-			echo "asdasdas"
 			if [ `expr $(stat -c%s "$ARCHIVO_LOG") / 1024` -ge $LOGSIZE ]
 			then
 				IFSOriginal=$IFS

@@ -486,7 +486,7 @@ export ARRIDIR=\${vectorParametros[5]}
 export GASTODIR=\${vectorParametros[6]}
 export LOGDIR=\${vectorParametros[8]}
 export LOGEXT=\${vectorParametros[9]}
-export LOGSIZE=\${vectorParametros[10]}
+export LOGSIZE=\`echo "\${vectorParametros[10]}" | sed 's/ KB$//'\`
 
 # Se settea una variable de control para saber si GINICI fue ejecutado
 export GINICIEXEC=1
