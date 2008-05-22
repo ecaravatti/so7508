@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#$1 = Nombre de archivo de log (sin extensión)
+#$1 = Nombre de archivo de log (sin extensión ni path)
 #$2 = Mensaje a loggear
 #$3 = Comando que me invoca. Si tiene el .sh no importa, ya que se lo saco.
 
