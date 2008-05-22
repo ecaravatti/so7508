@@ -27,10 +27,10 @@ validar_anio()
 	local anio_maximo=$(sed -n 4p $gastos_conf | cut -f 3 -d\ )
 	
 # 	Valido tambien que el mes este dentro de [01-12]
-	validar_mes $mes
-	local mes_valido="$?"
+#	validar_mes $mes
+#	local mes_valido="$?"
 
-	if [ "$anio" -ge "$anio_maximo" ] && [ "$mes_valido" -eq "$OK" ]
+	if [ "$anio" -ge "$anio_maximo" ] # && [ "$mes_valido" -eq "$OK" ]
 	then
 
 		return $OK
