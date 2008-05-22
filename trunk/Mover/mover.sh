@@ -100,7 +100,13 @@ then
 			extension="0$extension"
 		fi
 	fi
-		
+	
+	if [ $extension -gt 999 ]
+	then
+		$GLOG "$ARCHIVO_LOG" "No se puede mover el archivo ya que la carpeta de duplicados tiene el maximo valor posible" MOVER
+		exit 9
+	fi
+
 	mv "$1" "$directorio_destino"/dup/"$archivo_destino"."$extension"
 	if [ $? == 0 ]
 	then
