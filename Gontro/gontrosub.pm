@@ -58,8 +58,8 @@ sub getTipoCorrida {
     		}
     	} elsif (/\d+/) {
     		if (/(\d{6})/) {
-    			( ($periodo ne "*") && ($periodo = $1) ) ||
-    			( ($area ne "*") && ($area = $1) );
+    			( ("$periodo" ne "*") && ($periodo = $1) ) ||
+    			( ("$area" ne "*") && ($area = $1) );
     		} else {
     			$valida = 3;
     			push(@argsInvalidos, "$_");
