@@ -345,6 +345,7 @@ crearEstructuraDirectorios()
 	mkdir -p -m 755 "$GASTODIR/aproc"
 	mkdir -p -m 755 "$GASTODIR/proc"
 	mkdir -p -m 755 "$LOGDIR"
+	mkdir -p -m 755 "$GRUPO/etc"
 }
 
 copiarArchivos()
@@ -377,13 +378,13 @@ copiarArchivos()
 	# Se copian los archivos de prueba
 	printAndLog "Moviendo archivos de prueba..."
 
-	for i in `ls tests/confdir/`
+	for i in `ls "tests/confdir/"`
 	do
 		"./$MOVER" "tests/confdir/$i" "$CONFDIR" "$ARCHIVO_LOG"
 		chmod -f 755 "$CONFDIR/$i"
 	done
 
-	for i in `ls tests/arridir/`
+	for i in `ls "tests/arridir/"`
 	do
 		"./$MOVER" "tests/arridir/$i" "$ARRIDIR/" "$ARCHIVO_LOG"
 		chmod -f 755 "$ARRIDIR/$i"
@@ -489,6 +490,7 @@ done < \$ARCHIVO_CONF_GRAL
 export GRUPO=\${vectorParametros[1]}
 export CONFDIR=\${vectorParametros[2]}
 export ANIO=\${vectorParametros[3]}
+export BINDIR=\${vectorParametros[4]}
 export PATH="\$PATH:\${vectorParametros[1]}:\${vectorParametros[4]}"
 export ARRIDIR=\${vectorParametros[5]}
 export GASTODIR=\${vectorParametros[6]}
@@ -498,7 +500,6 @@ export LOGSIZE=\`echo "\${vectorParametros[10]}" | sed 's/ KB$//'\`
 
 # Se settea una variable de control para saber si GINICI fue ejecutado
 export GINICIEXEC=1
-export GPROCNUM=0
 
 case "\$1" in
 "-var")
