@@ -147,9 +147,9 @@ archivos_en_reci()
 {
 	local cant_archivos_en_reci=$(ls -l $reci | wc -l)
 
-#	echo "ARCHIVOS EN RECI****************** $cant_archivos_en_reci"
-	# Hay 2 carpetas en ese directorio.
-	if [ $cant_archivos_en_reci -gt 3 ]
+	# Si el directorio no contiene archivos, debe devolver 1, que es la linea donde indica el total.
+	# Si devuelve un numero mas grande, quiere decir que hay archivos en el directorio.
+	if [ $cant_archivos_en_reci -gt 1 ]
 	then
 		return $OK
 	fi
