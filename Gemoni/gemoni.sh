@@ -22,7 +22,6 @@ validar_anio()
 	#obtengo los caracteres correspondientes al año
 	local anio=$(echo $1 | cut -c 8-11)
 	local mes=$(echo $1 | cut -c 12-13)
-	echo " VOY A VALIDAR A MES $mes"
 
 	local anio_maximo=$(sed -n 4p $gastos_conf | cut -f 3 -d\ )
 	
