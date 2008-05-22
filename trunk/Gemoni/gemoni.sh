@@ -40,6 +40,21 @@ validar_anio()
 }
 
 
+# Valida que el mes este en el rango [01-12]
+# En $1 viene el mes
+
+# validar_mes()
+# {
+# 	local error=0
+# 	
+# 	mes_valido=$(echo $1 | grep -c '[0-1]\{1\}[0-2]\{1\}')
+# 
+# 	if [ "$mes_valido" -eq 1 ]
+# 	then
+# 		error=$(echo $1 | grep -c '0.[]')
+# 				
+# }
+
 # Recibe un string a buscar dentro del archivo. 
 #Devuelve la cantidad de ocurrencias del mismo.
 buscar_en_archivo()

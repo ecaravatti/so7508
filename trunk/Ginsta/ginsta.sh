@@ -613,37 +613,38 @@ inicializarArchivoLog()
 
 verificarComponentesInstalados()
 {
-	if [ "$BINDIR" != "" ]
-	then
-		cantInstalados=0
-		cantNoInstalados=0
-		componentes=( $GINICI $GEMONI $GALIDA $GONTRO $GLOG $MOVER )
+	printAndLog "Buscando componentes instalados..."
 
-		for i in ${componentes[@]}
-		do
-			if [ -f "$BINDIR/${i}" ]
-			then
-				componentesInstalados[$cantInstalados]=${i}
-				cantInstalados=`expr $cantInstalados + 1`
-			else
-				componentesNoInstalados[$cantNoInstalados]=${i}
-				cantNoInstalados=`expr $canNotInstalados + 1`
-			fi
-		done
+	cantInstalados=0
+	cantNoInstalados=0
+	componentes=( $GINICI $GEMONI $GALIDA $GONTRO $GLOG $MOVER )
 
-		if [ ${#componentesInstalados} -ge 1 ]
+	for i in ${componentes[@]}
+	do
+		archivoEncontrado=$(find "$GRUPO" -name "$i")
+		if [ ! -z "$archivoEncontrado" ]
 		then
-			# Concateno los arrays para pasárselos a la función
-			ci=`echo ${componentesInstalados[@]}`
-			cni=`echo ${componentesNoInstalados[@]}`
-			printComponentsList "$ci" "$cni" "$BINDIR"
-			if [ ${#componentesNoInstalados} -ge 1 ]
-			then
-				die "" $ERROR_COMPONENTE_INSTALADO
-			else
-				die "" $ERROR_PAQUETE_INSTALADO
-			fi				
+			dirComponente=$(dirname "$archivoEncontrado")
+			componentesInstalados[$cantInstalados]=${i}
+			cantInstalados=`expr $cantInstalados + 1`
+		else
+			componentesNoInstalados[$cantNoInstalados]=${i}
+			cantNoInstalados=`expr $canNotInstalados + 1`
 		fi
+	done
+
+	if [ ${#componentesInstalados} -ge 1 ]
+	then
+		# Concateno los arrays para pasárselos a la función
+		ci=`echo ${componentesInstalados[@]}`
+		cni=`echo ${componentesNoInstalados[@]}`
+		printComponentsList "$ci" "$cni" "$dirComponente"
+		if [ ${#componentesNoInstalados} -ge 1 ]
+		then
+			die "" $ERROR_COMPONENTE_INSTALADO
+		else
+			die "" $ERROR_PAQUETE_INSTALADO
+		fi				
 	fi
 }
 
