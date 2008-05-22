@@ -47,12 +47,14 @@ LOGDIR="$GRUPO/log"
 LOGEXT=".log"
 LOGSIZE=10
 
+# $1 = Mensaje a mostrar
 printAndLog()
 {
 	echo -e "$1"
 	"./$GLOG" "$ARCHIVO_LOG" "$1" "$NOMBRE_COMANDO"
 }
 
+# $1 = Variable en la que se almacenará el dato ingresado por el usuario
 readAndLog()
 {
 	read $1
@@ -65,6 +67,8 @@ fin()
 	"./$GLOG" "$ARCHIVO_LOG" "Fin de Ejecución" "$NOMBRE_COMANDO"
 }
 
+# $1 = Mensaje a mostrar
+# $2 = Código a retornar
 die()
 {
 	printAndLog "$1"
@@ -79,7 +83,7 @@ die()
 # deben estar separados por un espacio.
 # El segundo parámetro es el path donde se debe buscar el archivo,
 # para obtener la información sobre el usuario y la fecha.
-# El cuarto parámetro debe ser 1 si se desea que se imprima la información
+# El tercer parámetro debe ser 1 si se desea que se imprima la información
 # sobre el usuario y la fecha de instalación del comando, ó 0 en caso contrario.
 printComponents()
 {
@@ -103,6 +107,9 @@ printComponents()
 	done
 }
 
+# $1 = Lista de componentes instalados
+# $2 = Lista de componentes no instalados
+# $3 = Ruta donde se encuentran los componentes
 printComponentsList()
 {
 	printAndLog "*********************************************************"
@@ -141,6 +148,7 @@ verificarPerl()
 	fi
 }
 
+# $1 = Directorio donde se va a verificar el espacio diponible
 obtenerEspacioDisponible()
 {
 	RETVAL=$(df "$1" | tr -s " " | cut -f4 -d" " | grep ^[0-9]*$)
@@ -344,6 +352,8 @@ crearEstructuraDirectorios()
 	mkdir -p -m 755 "$ARRIDIR/reci"
 	mkdir -p -m 755 "$GASTODIR/aproc"
 	mkdir -p -m 755 "$GASTODIR/proc"
+	mkdir -p -m 755 "$GASTODIR/reci/ok"
+	mkdir -p -m 755 "$GASTODIR/reci/rech"
 	mkdir -p -m 755 "$LOGDIR"
 	mkdir -p -m 755 "$GRUPO/etc"
 }
@@ -441,6 +451,7 @@ ARCHIVO_LOG=ginicilog
 NOMBRE_COMANDO=GINICI
 GLOG=glog.sh
 
+# \$1 = Mensaje para mostrar
 printAndLog()
 {
 	echo -e "\$1"
@@ -605,6 +616,7 @@ instalar()
 	fi	
 }
 
+# $1 = Directorio donde guardar el archivo de log de la instalación.
 inicializarArchivoLog()
 {
 	> "$1/$ARCHIVO_LOG"
@@ -622,7 +634,7 @@ verificarComponentesInstalados()
 
 	for i in ${componentes[@]}
 	do
-		archivoEncontrado=$(find "$GRUPO" -name "$i")
+		archivoEncontrado=$(find "$GRUPO" -ignore_readdir_race -nowarn -name "$i")
 		if [ ! -z "$archivoEncontrado" ]
 		then
 			dirComponente=$(dirname "$archivoEncontrado")
