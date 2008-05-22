@@ -210,7 +210,7 @@ validar_nombre_archivo()
 if [ "$GINICIEXEC" -eq "" ]
 then
 	echo "No se encuentra el entorno inicializado."
-	echo "Instale GINSTA e intente nuevamente."
+	echo "Ejecute GINICI e intente nuevamente."
 
 	exit 1
 fi

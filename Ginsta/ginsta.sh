@@ -383,10 +383,10 @@ copiarArchivos()
 		chmod -f 755 "$CONFDIR/$i"
 	done
 
-	for i in `ls tests/arridir/reci/`
+	for i in `ls tests/arridir/`
 	do
-		"./$MOVER" "tests/arridir/reci/$i" "$ARRIDIR/reci" "$ARCHIVO_LOG"
-		chmod -f 755 "$ARRIDIR/reci/$i"
+		"./$MOVER" "tests/arridir/$i" "$ARRIDIR/" "$ARCHIVO_LOG"
+		chmod -f 755 "$ARRIDIR/$i"
 	done
 }
 

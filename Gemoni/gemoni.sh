@@ -21,20 +21,21 @@ validar_anio()
 {
 	#obtengo los caracteres correspondientes al año
 	local anio=$(echo $1 | cut -c 8-11)
-
-#	echo "el anio a validar es: $anio"
+	local mes=$(echo $1 | cut -c 12-13)
+	echo " VOY A VALIDAR A MES $mes"
 
 	local anio_maximo=$(sed -n 4p $gastos_conf | cut -f 3 -d\ )
-
-#	echo "el anio_maximo es: $anio_maximo"
 	
-	# anio >= anio_maximo
-	if [ "$anio" -ge "$anio_maximo" ] 
+# 	Valido tambien que el mes este dentro de [01-12]
+	validar_mes $mes
+	local mes_valido="$?"
+
+	if [ "$anio" -ge "$anio_maximo" ] && [ "$mes_valido" -eq "$OK" ]
 	then
-#		echo "anio valido"
+
 		return $OK
 	else
-#		echo "anio invalido"
+
 		return $ERROR
 	fi
 }
@@ -43,17 +44,34 @@ validar_anio()
 # Valida que el mes este en el rango [01-12]
 # En $1 viene el mes
 
-# validar_mes()
-# {
-# 	local error=0
-# 	
-# 	mes_valido=$(echo $1 | grep -c '[0-1]\{1\}[0-2]\{1\}')
-# 
-# 	if [ "$mes_valido" -eq 1 ]
-# 	then
-# 		error=$(echo $1 | grep -c '0.[]')
-# 				
-# }
+validar_mes()
+{
+# 	Valido los numeros validos segun la posicion	
+	local mes_valido=$(echo $1 | grep -c '^[0-1]\{1\}[0-2]\{1\}$')
+
+	echo "PASO LA PRIMER VAL DE FORMATO"
+#  	Si el formato anterior es valido, valido que no acepte 00
+	if [ "$mes_valido" -eq 1 ]
+	then
+		echo "el mes es $mes"
+		mes_valido=$(echo $1 | grep -c '^0[1-9]$')
+		echo "mes valido $mes_valido"
+# 		Si no hizo el match es porque el mes era 00, retorno error
+		if [ "$mes_valido" -eq 0 ] 
+		then
+			echo "EL MES FUE 00"
+			return $ERROR
+		fi
+# 	Formato de mes invalido
+	else
+		echo "NO PASO LA PRIM VALID"
+		return $ERROR
+	fi
+	
+	echo "MES VALIDO"
+	return $OK
+	
+}
 
 # Recibe un string a buscar dentro del archivo. 
 #Devuelve la cantidad de ocurrencias del mismo.
