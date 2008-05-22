@@ -23,8 +23,7 @@ use strict;
 use warnings;
 use gontrosub;
 
-#NECESITO SABER DONDE VAN A ESTAR LOS EJECUTABLES PARA QUE PUEDAN ANDAR EL PAQUETE gontrosub!
-#push(@INC, "$ENV{'$GRUPO'}");
+push(@INC, "$ENV{'$BINDIR'}");
 
 #Chequear que el entorno haya sido inicializado
 gontrosub::estaEntornoInicializado() or gontrosub::logFatalError("El proceso no puede ser iniciado. Entorno no inicializado.");
