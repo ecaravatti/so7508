@@ -23,6 +23,9 @@ use strict;
 use warnings;
 use gontrosub;
 
+#NECESITO SABER DONDE VAN A ESTAR LOS EJECUTABLES PARA QUE PUEDAN ANDAR EL PAQUETE gontrosub!
+#push(@INC, "$ENV{'$GRUPO'}");
+
 #Chequear que el entorno haya sido inicializado
 gontrosub::estaEntornoInicializado() or gontrosub::logFatalError("El proceso no puede ser iniciado. Entorno no inicializado.");
 
@@ -68,7 +71,7 @@ if ($corridaValida == 1) {
       	@conceptosAcumulados = gontrosub::getConceptosAcumulados($area, $periodo, "$ENV{'CONFDIR'}/cxa.acum");
 
       	#Crear estructura de datos para el procesamiento de archivo
-      	@datosArchivoGastos = ($_, $presupuestoMensual, $gastoAcumulado, @conceptos, @conceptosAcumulados);
+      	@datosArchivoGastos = ($_, $periodo, $presupuestoMensual, $gastoAcumulado, @conceptos, @conceptosAcumulados);
       	
       	#Procesamiento de los registros del archivo de gastos
       	($montoExtraordinario, $gastosExtraordinarios,
@@ -83,7 +86,7 @@ if ($corridaValida == 1) {
 				
 			gontrosub::generarArchivoGN($gastosNormales, "$ENV{'GASTODIR'}/proc/$area.gn") if @{$gastosNormales} > 0; 
 				
-			gontrosub::generarArchivoGE($gastosExtraordinarios, "$ENV{'CONFDIR'}/proc/$area.ge", "$ENV{'CONFDIR'}/motivos.tab") if @{$gastosExtraordinarios} > 0;
+			gontrosub::generarArchivoGE($gastosExtraordinarios, "$ENV{'GASTODIR'}/proc/$area.ge", "$ENV{'CONFDIR'}/motivos.tab") if @{$gastosExtraordinarios} > 0;
 				
 			`mover.sh $_ $ENV{'GASTODIR'}/proc/$area.$periodo.ord gontrolog`;
 	     }      	
