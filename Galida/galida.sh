@@ -409,7 +409,7 @@ gontro_corriendo=$( ps aux | grep -c gontro )
 if [ $gontro_corriendo -lt 2 ] 
 then
 	# Se invoca a gontro.
-	perl -w gontro.pl &
+	gontro.pl &
 fi
 
 glog.sh "galidalog" "Cantidad de archivos procesados: $cantidad_archivos_procesados" "GALIDA"
