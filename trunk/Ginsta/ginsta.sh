@@ -97,9 +97,9 @@ printComponents()
 		if [ "$3" == 1 ] # Mostrar usuario y fecha
 		then
 			# Obtengo el usuario que creó el archivo
-			usuario=$(ls -l "$2/${i}" | cut -f 3 -d ' ')
+			usuario=$(ls -l "$2/${i}" | cut -f 4 -d ' ')
 			# Obtengo la fecha en que se creó el archivo
-			fecha=$(ls -l "$2/${i}" | cut -f 6 -d ' ')
+			fecha=$(ls -l "$2/${i}" | cut -f 7 -d ' ')
 			printAndLog "* ${comando[0]}\t$usuario\t$fecha\t\t\t*"
 		else
 			printAndLog "* ${comando[0]}\t\t\t\t\t\t*"
@@ -394,11 +394,6 @@ copiarArchivos()
 		chmod -f 755 "$CONFDIR/$i"
 	done
 
-	for i in `ls "tests/arridir/"`
-	do
-		"./$MOVER" "tests/arridir/$i" "$ARRIDIR/" "$ARCHIVO_LOG"
-		chmod -f 755 "$ARRIDIR/$i"
-	done
 }
 
 guardarInformacionInstalacion()
@@ -634,7 +629,7 @@ verificarComponentesInstalados()
 
 	for i in ${componentes[@]}
 	do
-		archivoEncontrado=$(find "$GRUPO" -ignore_readdir_race -nowarn -name "$i")
+		archivoEncontrado=$(find "$GRUPO" -name "$i")
 		if [ ! -z "$archivoEncontrado" ]
 		then
 			dirComponente=$(dirname "$archivoEncontrado")

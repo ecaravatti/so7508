@@ -1,4 +1,4 @@
-#!usr/bin/perl -w
+#!/usr/bin/perl -w
 ####################################################################
 #	Archivo   : gontro.pl
 #	Módulo   : GONTRO
@@ -23,10 +23,12 @@ use strict;
 use warnings;
 use gontrosub;
 
-push(@INC, "$ENV{'$BINDIR'}");
+#Si el entorno no es encuentra inicializado, gontrosub.om debe estar en $PWD.
+push(@INC, "$ENV{'PWD'}");
+push(@INC, "$ENV{'BINDIR'}") if exists $ENV{'BINDIR'};
 
 #Chequear que el entorno haya sido inicializado
-gontrosub::estaEntornoInicializado() or gontrosub::logFatalError("El proceso no puede ser iniciado. Entorno no inicializado.");
+exists $ENV{'GINICIEXEC'} or gontrosub::logFatalError("El proceso no puede ser iniciado. Entorno no inicializado.");
 
 #Obtencion del numero de corrida
 my $procnum = gontrosub::getProcNum();
@@ -37,6 +39,7 @@ gontrosub::log("Inicio de ejecucion");
 #Determinar tipo de corrida
 my ($corridaValida, $tipoCorrida, $area, $periodo, @argsInvalidos) = gontrosub::getTipoCorrida(@ARGV);
 
+#Si la corrida es definitiva, las variables de entorno deben estar setteadas a mano.
 if ($corridaValida == 1) {
 	#Grabar tipo de corrida en el archivo de log
 	gontrosub::log("Tipo de corrida $tipoCorrida, Area a procesar = $area, Periodo a procesar = $periodo");

@@ -7,7 +7,7 @@
 # Descripcion:
 # Este comando es el tercero en orden de ejecución.
 # Se dispara automáticamente. 
-# Graba un archivo de Log.(galidaLog.<ext>)
+# Graba un archivo de Log.(galidalog.<ext>)
 # El propósito de este comando es:
 # Validar los archivos recibidos, ordenar los archivos y dejarlos disponibles
 # en el directorio GASTODIR/aproc para que el comando GONTRO los pueda utilizar.
@@ -44,8 +44,8 @@ ordenar_archivo()
 	
 	rm $reci_ok/$arch # elimina el archivo original.
 
-	mover.sh "$reci_ok/$arch.ord" "$a_procesar" "galida"
-	glog.sh "galidaLog" "Archivo ordenado $arch.ord." "GALIDA"
+	mover.sh "$reci_ok/$arch.ord" "$a_procesar" "galidalog"
+	glog.sh "galidalog" "Archivo ordenado $arch.ord." "GALIDA"
 
 	return $OK
 }
@@ -56,10 +56,10 @@ ordenar_archivo()
 #	$1: año
 validar_bisiesto()
 {
-	local resto=$(expr "$1" % 4) 	# si el resto de la division del año por 4 es nulo,
+	local resto=$(expr $1 % 4) 	# si el resto de la division del año por 4 es nulo,
 					# el año es bisiesto.
 
-	if [ "$resto" -eq 0 ]
+	if [ $resto -eq 0 ]
 	then
 		return $OK
 	else
@@ -78,7 +78,7 @@ validar_concepto()
 	local concepto_encontrado=$(cut -d';' -f 2 $conceptos_x_area | grep -c "^$1$") 	
 
 	# Si $concepto_encontrado es cero no hubo match con el grep"
-	if [ "$concepto_encontrado" -eq 0 ]
+	if [ $concepto_encontrado -eq 0 ]
 	then 
 		return $ERROR	
 	else
@@ -94,34 +94,34 @@ validar_concepto()
 validar_fecha()
 {
 # Si el mes es 1,3,5,7,8,10 o 12, el dia debe ser menor o igual a 31.
-if [ "$2" -eq 01 ] || [ "$2" -eq 03 ] || [ "$2" -eq 05 ] || [ "$2" -eq 07 ] || [ "$2" -eq 08 ] || [ "$2" -eq 10 ]  || [ "$2" -eq 12 ]
+if [ $2 -eq 01 ] || [ $2 -eq 03 ] || [ $2 -eq 05 ] || [ $2 -eq 07 ] || [ $2 -eq 08 ] || [ $2 -eq 10 ]  || [ $2 -eq 12 ]
 then
-	if [ "$1" -gt 31 ]
+	if [ $1 -gt 31 ]
 	then
 		return $ERROR
 	fi
 
 # Si el mes es 4,6,9 o 11, el dia debe ser menor o igual a 30.
-elif [ "$2" -eq  04 ] || [ "$2" -eq 06 ] || [ "$2" -eq 09 ] || [ "$2" -eq 11 ]
+elif [ $2 -eq  04 ] || [ $2 -eq 06 ] || [ $2 -eq 09 ] || [ $2 -eq 11 ]
 then
-		if [ "$1" -gt 30 ]
+		if [ $1 -gt 30 ]
 		then
 			return $ERROR
 		fi
 
-elif [ "$2" -eq 02 ]
+elif [ $2 -eq 02 ]
 then
 	validar_bisiesto $3
-	local es_bisiesto="$?"
+	local es_bisiesto=$?
 
 	# Si el mes es 2 y el año es bisiesto, el dia debe ser menor o igual a 29.
-	if [ $es_bisiesto -eq "$OK" ] || [ "$1" -gt 29 ]
+	if [ $es_bisiesto -eq $OK ] || [ $1 -gt 29 ]
 	then
 		return $ERROR
 	fi
 
 	# si el mes es 2 y el año no es bisiesto y dia debe ser menor o igual a 28.
-	if [ $es_bisiesto -eq "$ERROR" ] || [ "$1" -gt 28 ]
+	if [ $es_bisiesto -eq $ERROR ] || [ $1 -gt 28 ]
 	then
 		return $ERROR
 	fi
@@ -143,12 +143,12 @@ validar_importe()
 	# Valida el formato numerico positivo.
 	local importe_valido=$(echo $1 | grep -c '^[0-9]*\.[0-9][0-9]$')
 	
-	if [ "$importe_valido" -eq 1 ]
+	if [ $importe_valido -eq 1 ]
 	then
 		# se fija si es nulo.
 		importe_valido=$(echo $1 | grep -c '^0*\.00$')
 		
-		if [ "$importe_valido" -eq 1 ]
+		if [ $importe_valido -eq 1 ]
 		then
 			# importe nulo.
 			return $ERROR
@@ -159,6 +159,17 @@ validar_importe()
 		# no cumple con el formato.
 		return $ERROR
 	fi
+}
+
+validar_numerico()
+{
+es_numerico=$(echo "$1" | grep -c "^[0-9]*$")
+ if [ $es_numerico -eq 1 ]
+then
+	return $OK
+else
+	return $ERROR
+fi
 }
 
 # Esta funcion recibe el nombre del archivo a validar.
@@ -186,47 +197,57 @@ validar_registros_archivo()
 			id_concepto=$(echo $linea | awk -F';' '{print $3}')
 			importe=$(echo $linea | awk -F';' '{print $4}')
 
+
+			validar_numerico $id_concepto
+			es_numerico="$?"
+			
+			if [ $es_numerico -eq $ERROR ]
+			then
+				glog.sh "galidalog" "El registro $numero_registro es rechazado debido a  concepto invalido." "GALIDA"
+				cantidad_registros_erroneos=`expr $cantidad_registros_erroneos + 1`
+				continue
+			fi
+
 			# Obtiene año y mes del nombre del archivo.
 			anio=$(echo $1 | cut -c 8-11)
 			mes=$(echo $1 | cut -c 12-13)
 
 			validar_fecha $dia $mes $anio
-			local dia_valido="$?"
+			local dia_valido=$?
 
-			if [ "$dia_valido" -eq "$ERROR" ]
+			if [ $dia_valido -eq $ERROR ]
 			then
 				# Fecha invalida.
-				glog.sh "galidaLog" "El registro $numero_registro es rechazado debido a fecha invalida." "GALIDA"
+				glog.sh "galidalog" "El registro $numero_registro es rechazado debido a fecha invalida." "GALIDA"
 				cantidad_registros_erroneos=`expr $cantidad_registros_erroneos + 1`
 				continue
 			fi
 
 			validar_importe $importe
-			local importe_valido="$?"
+			local importe_valido=$?
 
-			if [ "$importe_valido" -eq "$ERROR" ]
+			if [ $importe_valido -eq $ERROR ]
 			then 
 				# Importe invalido.
-				glog.sh "galidaLog" "El registro $numero_registro es rechazado debido a importe invalido." "GALIDA"
+				glog.sh "galidalog" "El registro $numero_registro es rechazado debido a importe invalido." "GALIDA"
 				cantidad_registros_erroneos=`expr $cantidad_registros_erroneos + 1`
 				continue
 			fi
 			
 			validar_concepto $id_concepto
-			local concepto_valido="$?"
+			local concepto_valido=$?
 
-			if [ "$concepto_valido" -eq "$ERROR" ]
+			if [ $concepto_valido -eq $ERROR ]
 			then
 				# Concepto invalido.
-				glog.sh "galidaLog" "El registro $numero_registro es rechazado debido a concepto invalido." "GALIDA"
+				glog.sh "galidalog" "El registro $numero_registro es rechazado debido a concepto invalido." "GALIDA"
 				cantidad_registros_erroneos=`expr $cantidad_registros_erroneos + 1`
 				continue
 			fi
 
-			# TODO: Validar comprobante. De donde se obtiene??
 		else
 			# Cantidad de campos invalida.
-			glog.sh "galidaLog" "El registro $numero_registro es rechazado debido a cantidad de campos invalida." "GALIDA"
+			glog.sh "galidalog" "El registro $numero_registro es rechazado debido a cantidad de campos invalida." "GALIDA"
 			cantidad_registros_erroneos=`expr $cantidad_registros_erroneos + 1`
 			continue
 		fi
@@ -244,7 +265,7 @@ verificar_archivo_ordenado()
 {
 	local existe=$(ls -l $a_procesar | grep -c "$1.ord")
 
-	if [ "$existe" -eq 1 ]
+	if [ $existe -eq 1 ]
 	then
 		return $ERROR
 	else
@@ -262,7 +283,7 @@ validar_nombre_archivo()
 	#primero valida que el formato sea codigo de area[6caracteres numericos].fecha[6caracteres numericos]
 	local resultado=$(echo $1 | grep -c '^[0-9]\{6\}\.[0-9]\{6\}$')
 
-	if [ "$resultado" -eq 1 ]
+	if [ $resultado -eq 1 ]
 	then
 		return $OK
 	else
@@ -277,12 +298,12 @@ crear_directorio()
 {
 if [ ! -e "$1" ] # Verifica la inexistencia de un archivo de nombre $1
 	then
-		glog.sh "galidaLog" "Creando directorio $1." "GALIDA"
+		glog.sh "galidalog" "Creando directorio $1." "GALIDA"
 		mkdir "$1"
 	elif [ ! -d "$1" ] # Se fija que el archivo existente no sea un directorio.
 	then
 		# Si no se puede crear el directorio, se aborta galida.
-		glog.sh "galidaLog" "No se pudo crear directorio $1 ya que existe un archivo con ese nombre" "GALIDA"
+		glog.sh "galidalog" "No se pudo crear directorio $1 ya que existe un archivo con ese nombre" "GALIDA"
 		exit 2
 	fi
 }
@@ -318,7 +339,7 @@ fi
 verificar_entorno
 crear_directorios_necesarios
 
-glog.sh "galidaLog" "Inicio de Ejecución." "GALIDA"
+glog.sh "galidalog" "Inicio de Ejecución." "GALIDA"
 
 cantidad_archivos_procesados=0
 cantidad_archivos_duplicados=0
@@ -332,42 +353,42 @@ do
 	if [ ! -d $reci/$arch ]
 	then
 		validar_nombre_archivo $arch
-		archivo_valido="$?"
+		archivo_valido=$?
 		
-		if [ "$archivo_valido" -eq "$OK" ]
+		if [ $archivo_valido -eq $OK ]
 		then	
 			# Si el nombre del archivo es correcto:
 			cantidad_archivos_procesados=`expr $cantidad_archivos_procesados + 1`
 
-			glog.sh "galidaLog" "Validando archivo $arch" "GALIDA"
+			glog.sh "galidalog" "Validando archivo $arch" "GALIDA"
 	
 			# Comprueba que no exista un archivo ya ordenado con el mismo nombre.
 			verificar_archivo_ordenado $arch
-			resultado="$?"
+			resultado=$?
 
-			if [ "$resultado" -eq "$ERROR" ]
+			if [ $resultado -eq $ERROR ]
 			then
 		
 				# El archivo esta duplicado, lo mueve a rechazados"
 				cantidad_archivos_duplicados=`expr $cantidad_archivos_duplicados + 1`
 
-				mover.sh "$reci/$arch" "$reci_rech" "galidaLog" "Archivo duplicado, ya existe un archivo del mismo nombre para procesar."
+				mover.sh "$reci/$arch" "$reci_rech" "galidalog" "Archivo duplicado, ya existe un archivo del mismo nombre para procesar."
 			else
 				# El arch no es duplicado, valida los registros."
 				validar_registros_archivo $arch
-				resultado="$?"
+				resultado=$?
 
-				if [ ! "$resultado" -eq "$OK" ]
+				if [ ! $resultado -eq $OK ]
 				then
 					# Si algun registro no es valido.
-					mover.sh "$reci/$arch" "$reci_rech" "galidaLog" "Archivo rechazado, algún registro no corresponde al formato adecuado"
-					glog.sh "galidaLog" "Cantidad de Registros con Error: $resultado." "GALIDA"
+					mover.sh "$reci/$arch" "$reci_rech" "galidalog" "Archivo rechazado, algún registro no corresponde al formato adecuado"
+					glog.sh "galidalog" "Cantidad de Registros con Error: $resultado." "GALIDA"
 
 					cantidad_archivos_rechazados=`expr $cantidad_archivos_rechazados + 1`
 
 				else
 					# Si todos los registros son validos.
-					mover.sh "$reci/$arch" "$reci_ok" "galidaLog" "Archivo aceptado"
+					mover.sh "$reci/$arch" "$reci_ok" "galidalog" "Archivo aceptado"
 
 					# Ordena los registros del archivo.
 					ordenar_archivo $arch
@@ -376,8 +397,8 @@ do
 			fi
 		else
 			# Nombre de archivo invalido.
-			glog.sh "galida" "Archivo rechazado, nombre invalido: $arch." "GALIDA"
-			mover.sh "$reci/$arch" "$reci_rech" "galidaLog"
+			glog.sh "galidalog" "Archivo rechazado, nombre invalido: $arch." "GALIDA"
+			mover.sh "$reci/$arch" "$reci_rech" "galidalog"
 		fi
 	fi
 done
@@ -391,10 +412,10 @@ then
 	perl -w gontro.pl &
 fi
 
-glog.sh "galidaLog" "Cantidad de archivos procesados: $cantidad_archivos_procesados" "GALIDA"
-glog.sh "galidaLog" "Cantidad de archivos duplicados: $cantidad_archivos_duplicados" "GALIDA"
-glog.sh "galidaLog" "Cantidad de archivos rechazados: $cantidad_archivos_rechazados" "GALIDA"
-glog.sh "galidaLog" "Cantidad de archivos aceptados: $cantidad_archivos_aceptados" "GALIDA"
-glog.sh "galidaLog" "Fin de ejecucion" "GALIDA"
+glog.sh "galidalog" "Cantidad de archivos procesados: $cantidad_archivos_procesados" "GALIDA"
+glog.sh "galidalog" "Cantidad de archivos duplicados: $cantidad_archivos_duplicados" "GALIDA"
+glog.sh "galidalog" "Cantidad de archivos rechazados: $cantidad_archivos_rechazados" "GALIDA"
+glog.sh "galidalog" "Cantidad de archivos aceptados: $cantidad_archivos_aceptados" "GALIDA"
+glog.sh "galidalog" "Fin de ejecucion" "GALIDA"
 
 exit 0
