@@ -1,4 +1,4 @@
-#!usr/bin/perl -w
+#!/usr/bin/perl -w
 ####################################################################
 #	Archivo   : gontrosub.pl
 #	Módulo	  : GONTRO
@@ -19,12 +19,6 @@
 
 use Tie::File;
 package gontrosub;
-
-sub estaEntornoInicializado {
-	return 1 if exists $ENV{'GINICIEXEC'}; 
-	
-	return 0;	
-}
 
 sub getProcNum { 
 	my @nomArchivoProc = <$ENV{'GRUPO'}/etc/gprocnum.*>;
@@ -406,7 +400,7 @@ sub generarInforme {
 sub log {
 	my $logMsg = shift;
 
-	`glog.sh gontrolog $logMsg GONTRO`;
+	`glog.sh gontrolog "$logMsg" GONTRO`;
 
 	return;
 }
