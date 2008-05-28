@@ -43,16 +43,17 @@ iniciarGemoni()
 		if [ $? -eq 0 ]
 		then
 			comando=$(ps | grep "$comando_a_verificar")
-			id=$(echo $comando | cut -d ' ' -f1)
-			echo -e "****************************************************************
-* Demonio corriendo bajo el número: $id\t\t\t*
-****************************************************************"
+			id=$(echo $comando | awk '{print $1}')
+			echo -e "*****************************************************************
+* Demonio corriendo bajo el id: $id\t\t\t\t*
+*****************************************************************"
 			return $FIN_OK
 		else
+			echo "Se produjo un error al ejecutar el comando GEMONI"
 			return $ERROR_GEMONI
 		fi
 	else
-		tiempo_corriendo=$(ps -e | grep $comando_a_verificar | cut -c15-23)
+		tiempo_corriendo=$(ps -e | grep $comando_a_verificar | awk '{print $3}')
 		echo "El comando GEMONI se encuentra corriendo hace $tiempo_corriendo"
 		return $FIN_OK
 	fi
@@ -84,6 +85,8 @@ export LOGSIZE=`echo "${vectorParametros[10]}" | sed 's/ KB$//'`
 # Se settea una variable de control para saber si GINICI fue ejecutado
 export GINICIEXEC=1
 
+echo "Configuración del entorno completada."
+
 case "$1" in
 "-var")
 	eval aux=\$$2
@@ -95,7 +98,7 @@ case "$1" in
 	comando=$(ps | grep "$comando_a_verificar")
 	if [ ! -z "$comando" ]
 	then
-		id=$(echo $comando | cut -d ' ' -f1)
+		id=$(echo $comando | awk '{print $1}')
 		printAndLog "Comando $2 corriendo bajo el id $id"
 		exit $FIN_OK
 	else
@@ -108,7 +111,8 @@ case "$1" in
 	comando=$(ps | grep "$comando_a_matar")
 	if [ ! -z "$comando" ]
 	then
-		killall $comando_a_matar
+		id=$(echo $comando | awk '{print $1}')
+		kill -9 $id
 		if [ $? == 0 ]
 		then
 			printAndLog "El comando $2 fue terminado satisfactoriamente"
@@ -128,9 +132,6 @@ esac
 
 # Se invoca a GEMONI (si es que no se encuentra corriendo)
 iniciarGemoni
-retorno="$?"
 
-echo "Configuración del entorno completada."
-
-exit $retorno
+exit $?
 
