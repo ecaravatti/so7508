@@ -88,21 +88,32 @@ die()
 printComponents()
 {
 	array=( `echo "$1"` )
-	for i in ${array[@]}
+	for i in ${array[*]}
 	do
 		# Separo el nombre del archivo y la extensión
 		comando=(`echo ${i} | tr '.' ' '`)
 		# Paso el nombre del archivo a mayúscula
 		comando=(`echo ${comando[0]} | tr "[:lower:]" "[:upper:]"`)
+		longitudComando=${#comando[0]}
 		if [ "$3" == 1 ] # Mostrar usuario y fecha
 		then
 			# Obtengo el usuario que creó el archivo
-			usuario=$(ls -l "$2/${i}" | cut -f 4 -d ' ')
+			usuario=$(ls -l "$2/${i}" | awk '{print $3}')
 			# Obtengo la fecha en que se creó el archivo
-			fecha=$(ls -l "$2/${i}" | cut -f 7 -d ' ')
-			printAndLog "* ${comando[0]}\t$usuario\t$fecha\t\t\t*"
+			fecha=$(ls -l "$2/${i}" | awk '{print $6}')
+			if [ $longitudComando -lt 6 ]
+			then
+				printAndLog "* ${comando[0]}\t\t$usuario\t$fecha\t\t\t*"
+			else
+				printAndLog "* ${comando[0]}\t$usuario\t$fecha\t\t\t*"
+			fi
 		else
-			printAndLog "* ${comando[0]}\t\t\t\t\t\t*"
+			if [ $longitudComando -lt 6 ]
+			then
+				printAndLog "* ${comando[0]}\t\t\t\t\t\t\t*"
+			else
+				printAndLog "* ${comando[0]}\t\t\t\t\t\t*"
+			fi
 		fi
 	done
 }
@@ -352,8 +363,6 @@ crearEstructuraDirectorios()
 	mkdir -p -m 755 "$ARRIDIR/reci"
 	mkdir -p -m 755 "$GASTODIR/aproc"
 	mkdir -p -m 755 "$GASTODIR/proc"
-	mkdir -p -m 755 "$GASTODIR/reci/ok"
-	mkdir -p -m 755 "$GASTODIR/reci/rech"
 	mkdir -p -m 755 "$LOGDIR"
 	mkdir -p -m 755 "$GRUPO/etc"
 }
@@ -414,6 +423,15 @@ guardarInformacionInstalacion()
 	echo "MAXLOGSIZE = $LOGSIZE KB" >> "$archivoConf"
 	echo "FECINS = `date +%D\ %T`" >> "$archivoConf"
 	echo "USERID = `whoami`" >> "$archivoConf"
+
+	# Se guarda la información necesaria para que GONTRO pueda
+	# inicializar el ambiente cuando es ejecutado manualmente
+	echo "BINDIR = $BINDIR" >> "$GRUPO/etc/gontro.conf"
+	echo "ARRIDIR = $ARRIDIR" >> "$GRUPO/etc/gontro.conf"
+	echo "GASTODIR = $GASTODIR" >> "$GRUPO/etc/gontro.conf"
+	echo "LOGDIR = $LOGDIR" >> "$GRUPO/etc/gontro.conf"
+	echo "LOGEXT = $LOGEXT" >> "$GRUPO/etc/gontro.conf"
+	echo "MAXLOGSIZE = $LOGSIZE KB" >> "$GRUPO/etc/gontro.conf"
 }
 
 crearComandoGinici()
@@ -466,16 +484,17 @@ iniciarGemoni()
 		if [ \$? -eq 0 ]
 		then
 			comando=\$(ps | grep "\$comando_a_verificar")
-			id=\$(echo \$comando | cut -d ' ' -f1)
-			echo -e "****************************************************************
-* Demonio corriendo bajo el número: \$id\\t\\t\\t*
-****************************************************************"
+			id=\$(echo \$comando | awk '{print \$1}')
+			echo -e "*****************************************************************
+* Demonio corriendo bajo el id: \$id\\t\\t\\t\\t*
+*****************************************************************"
 			return \$FIN_OK
 		else
+			echo "Se produjo un error al ejecutar el comando GEMONI"
 			return \$ERROR_GEMONI
 		fi
 	else
-		tiempo_corriendo=\$(ps -e | grep \$comando_a_verificar | cut -c15-23)
+		tiempo_corriendo=\$(ps -e | grep \$comando_a_verificar | awk '{print \$3}')
 		echo "El comando GEMONI se encuentra corriendo hace \$tiempo_corriendo"
 		return \$FIN_OK
 	fi
@@ -507,6 +526,8 @@ export LOGSIZE=\`echo "\${vectorParametros[10]}" | sed 's/ KB$//'\`
 # Se settea una variable de control para saber si GINICI fue ejecutado
 export GINICIEXEC=1
 
+echo "Configuración del entorno completada."
+
 case "\$1" in
 "-var")
 	eval aux=\\\$\$2
@@ -518,7 +539,7 @@ case "\$1" in
 	comando=\$(ps | grep "\$comando_a_verificar")
 	if [ ! -z "\$comando" ]
 	then
-		id=\$(echo \$comando | cut -d ' ' -f1)
+		id=\$(echo \$comando | awk '{print \$1}')
 		printAndLog "Comando \$2 corriendo bajo el id \$id"
 		exit \$FIN_OK
 	else
@@ -531,7 +552,8 @@ case "\$1" in
 	comando=\$(ps | grep "\$comando_a_matar")
 	if [ ! -z "\$comando" ]
 	then
-		killall \$comando_a_matar
+		id=\$(echo \$comando | awk '{print \$1}')
+		kill -9 \$id
 		if [ \$? == 0 ]
 		then
 			printAndLog "El comando \$2 fue terminado satisfactoriamente"
@@ -551,11 +573,8 @@ esac
 
 # Se invoca a GEMONI (si es que no se encuentra corriendo)
 iniciarGemoni
-retorno="\$?"
 
-echo "Configuración del entorno completada."
-
-exit \$retorno
+exit \$?
 
 EOF
 	
@@ -570,8 +589,8 @@ EOF
 mostrarComponentesInstaldos()
 {
 	printAndLog "*********************************************************"
-	printAndLog "* Se encuentra instalados los siguientes componentes:\t*"
-	componentes="$GINICI $GEMONI $GONTRO $GALIDA $GLOG $MOVER"
+	printAndLog "* Se encuentran instalados los siguientes componentes:\t*"
+	componentes="$GINICI $GEMONI $GALIDA $GONTRO $GLOG $MOVER"
 	printComponents "$componentes" "$BINDIR" 1
 	printAndLog "*********************************************************"
 	printAndLog "* FIN del Proceso de Instalación del Sistema de GASTOS\t*"
@@ -626,33 +645,41 @@ verificarComponentesInstalados()
 	cantInstalados=0
 	cantNoInstalados=0
 	componentes=( $GINICI $GEMONI $GALIDA $GONTRO $GLOG $MOVER )
+	archConf=$(find "$GRUPO" -name "gastos.conf")
 
-	for i in ${componentes[@]}
-	do
-		archivoEncontrado=$(find "$GRUPO" -name "$i")
-		if [ ! -z "$archivoEncontrado" ]
-		then
-			dirComponente=$(dirname "$archivoEncontrado")
-			componentesInstalados[$cantInstalados]=${i}
-			cantInstalados=`expr $cantInstalados + 1`
-		else
-			componentesNoInstalados[$cantNoInstalados]=${i}
-			cantNoInstalados=`expr $canNotInstalados + 1`
-		fi
-	done
-
-	if [ ${#componentesInstalados} -ge 1 ]
+	if [ ! -z "$archConf" ]
 	then
-		# Concateno los arrays para pasárselos a la función
-		ci=`echo ${componentesInstalados[@]}`
-		cni=`echo ${componentesNoInstalados[@]}`
-		printComponentsList "$ci" "$cni" "$dirComponente"
-		if [ ${#componentesNoInstalados} -ge 1 ]
+		dirEjecutables=$(grep '^BINDIR' "$archConf" | sed 's/^BINDIR = \(.*\)/\1/')
+
+		if [ ! -z "$dirEjecutables" ] && [ -d "$dirEjecutables" ]
 		then
-			die "" $ERROR_COMPONENTE_INSTALADO
-		else
-			die "" $ERROR_PAQUETE_INSTALADO
-		fi				
+			for i in ${componentes[*]}
+			do
+				archivoEncontrado=$(find "$dirEjecutables" -name "$i")
+				if [ ! -z "$archivoEncontrado" ]
+				then
+					componentesInstalados[$cantInstalados]=${i}
+					let cantInstalados++
+				else
+					componentesNoInstalados[$cantNoInstalados]=${i}
+					let cantNoInstalados++
+				fi
+			done
+		
+			if [ ${#componentesInstalados} -ge 1 ]
+			then
+				# Concateno los arrays para pasárselos a la función
+				ci=`echo ${componentesInstalados[*]}`
+				cni=`echo ${componentesNoInstalados[*]}`
+				printComponentsList "$ci" "$cni" "$dirEjecutables"
+				if [ ${#componentesNoInstalados} -ge 1 ]
+				then
+					die "" $ERROR_COMPONENTE_INSTALADO
+				else
+					die "" $ERROR_PAQUETE_INSTALADO
+				fi				
+			fi
+		fi
 	fi
 }
 
