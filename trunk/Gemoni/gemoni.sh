@@ -146,9 +146,9 @@ archivos_en_reci()
 {
 	local cant_archivos_en_reci=$(ls -l $reci | wc -l)
 
-	# Si el directorio no contiene archivos, debe devolver 1, que es la linea donde indica el total.
+	# Si el directorio no contiene archivos, debe devolver 3, la linea donde indica el total y los directorios reci/ok y reci/rech.
 	# Si devuelve un numero mas grande, quiere decir que hay archivos en el directorio.
-	if [ $cant_archivos_en_reci -gt 1 ]
+	if [ $cant_archivos_en_reci -gt 3 ]
 	then
 		return $OK
 	fi
@@ -198,9 +198,6 @@ do
 	archivos_en_reci
 	
 	hay_archivos="$?"
-
-#	echo "galida_corriendo: $galida_corriendo"
-
 
 	if [ "$galida_corriendo" -lt 2 ] && [ "$hay_archivos" -eq "$OK" ] 
 	then
