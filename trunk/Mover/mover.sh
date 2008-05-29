@@ -72,7 +72,7 @@ then
 		mkdir "$directorio_destino"/dup
 	elif [ ! -d "$directorio_destino"/dup ] #Chequeo si el dup existente no es un directorio
 	then
-		$GLOG "$ARCHIVO_LOG" "No se pudo crear directorio $directorio_destino/dup ya que existe un archivo con ese nombre" $0
+		$GLOG "$ARCHIVO_LOG" "No se pudo crear directorio $directorio_destino/dup ya que existe un archivo con ese nombre" MOVER
 		exit 6
 	fi
 
