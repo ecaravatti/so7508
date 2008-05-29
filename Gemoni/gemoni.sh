@@ -5,11 +5,8 @@ dormir=5
 ERROR=1
 OK=0
 
-# PATH=$PATH:/home/estefania/Facu/SistemasOperativos/gastos/bin
-# export PATH
-
 # Paths
-path=$GRUPO #/home/estefania/Facu/SistemasOperativos/gastos
+path=$GRUPO 
 arridir=$ARRIDIR
 area_tab=$CONFDIR/area.tab
 gastos_conf=$CONFDIR/gastos.conf
@@ -25,11 +22,7 @@ validar_anio()
 
 	local anio_maximo=$(sed -n 4p $gastos_conf | cut -f 3 -d\ )
 	
-# 	Valido tambien que el mes este dentro de [01-12]
-#	validar_mes $mes
-#	local mes_valido="$?"
-
-	if [ "$anio" -ge "$anio_maximo" ] # && [ "$mes_valido" -eq "$OK" ]
+	if [ "$anio" -ge "$anio_maximo" ]
 	then
 
 		return $OK
@@ -40,37 +33,6 @@ validar_anio()
 }
 
 
-# Valida que el mes este en el rango [01-12]
-# En $1 viene el mes
-
-validar_mes()
-{
-# 	Valido los numeros validos segun la posicion	
-	local mes_valido=$(echo $1 | grep -c '^[0-1]\{1\}[0-2]\{1\}$')
-
-	echo "PASO LA PRIMER VAL DE FORMATO"
-#  	Si el formato anterior es valido, valido que no acepte 00
-	if [ "$mes_valido" -eq 1 ]
-	then
-		echo "el mes es $mes"
-		mes_valido=$(echo $1 | grep -c '^0[1-9]$')
-		echo "mes valido $mes_valido"
-# 		Si no hizo el match es porque el mes era 00, retorno error
-		if [ "$mes_valido" -eq 0 ] 
-		then
-			echo "EL MES FUE 00"
-			return $ERROR
-		fi
-# 	Formato de mes invalido
-	else
-		echo "NO PASO LA PRIM VALID"
-		return $ERROR
-	fi
-	
-	echo "MES VALIDO"
-	return $OK
-	
-}
 
 # Recibe un string a buscar dentro del archivo. 
 #Devuelve la cantidad de ocurrencias del mismo.
@@ -99,34 +61,27 @@ validar_area()
 	return $area_encontrada
 }
 
+# Valida que el formato del archivo cumpla con las restricciones especificadas
 validar_nombre_archivo()
 {
 	
 	#primero valida que el formato sea codigo de area[6caracteres numericos].fecha[6caracteres numericos]
 	local resultado=$(echo $1 | grep -c '^[0-9]\{6\}\.[0-9]\{6\}$')
 	
-#	echo "resultadoGlobal: $resultado"
-
 	#si el nombre del archivo es del formato correcto
 	if [ "$resultado" -eq 1 ] 
 		then
-#		echo "voy a validar area"
+# 		Valida que el area se encuentre en area.tab
 		validar_area $1
 		resultado="$?"
 
-#		echo "resultadoArea: $resultado"
-
 		if [ "$resultado" -gt 0 ] 
-			then # Si el area es valida
-	
-#			echo "voy a validar año"
+		then # Si el area es valida
 			validar_anio $1 # Valido el anio
 			resultado="$?"
 
-#			echo "resultado de validar_anio: $resultado"
-			
-			if [ "$resultado" = 0 ] 
-				then
+			if [ "$resultado" -eq 0 ] 
+			then
 				return $OK
 			else
 				return $ERROR
@@ -142,6 +97,7 @@ validar_nombre_archivo()
 	fi
 }
 
+# Verifica que haya archivos en el directorio reci
 archivos_en_reci()
 {
 	local cant_archivos_en_reci=$(ls -l $reci | wc -l)
@@ -158,43 +114,38 @@ archivos_en_reci()
 
 if [ "$GINICIEXEC" == "" ]
 then
-#	echo "No se encuentra el entorno inicializado."
-#	echo "Ejecute GINICI e intente nuevamente."
+	echo "No se encuentra el entorno inicializado."
+	echo "Ejecute GINICI e intente nuevamente."
 
 	exit 1
 fi
 
-
+IFSOriginal=$IFS
+IFS=$'\n'
 while true
 do
-#cho "$arridir"
 	for archi in `ls $arridir`
 	do
 		
-		if [ ! -d $arridir/$archi ] 
+		if [ ! -d "$arridir/$archi" ] 
 		then
-
-#			echo "archivo es: $archi"
 			validar_nombre_archivo $archi
 			resultad="$?"
 			
-#			echo "VALIDACION NOMBRE ARCHIVO: $resultad"
 			if [ "$resultad" -eq "$OK" ] 
 			then
 
-#				echo "recibi $archi"
 				mover.sh "$arridir/$archi" "$reci" "gemonilog"
 			else
-#				echo "no recibi $archi"
 				mover.sh "$arridir/$archi" "$noreci" "gemonilog"
 			fi
 		fi
 	done
 
 	
-	# se fija si esta corriendo galida.sh
+	# verifica que esta corriendo galida.sh
 	galida_corriendo=$( ps aux | grep -c galida )	
-	# Se fija si hay archivos en reci
+	# verifica que haya archivos en reci
 	archivos_en_reci
 	
 	hay_archivos="$?"
@@ -202,11 +153,11 @@ do
 	if [ "$galida_corriendo" -lt 2 ] && [ "$hay_archivos" -eq "$OK" ] 
 	then
 		galida.sh &
-#	else
-#		echo "esta corriendo galida!"
 	fi
 
 	sleep $dormir
 done
 
- exit 0 
+IFS=$IFSOriginal
+
+exit 0 
