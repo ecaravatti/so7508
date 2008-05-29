@@ -23,24 +23,28 @@ use strict;
 use warnings;
 use gontrosub;
 
-#Si el entorno no es encuentra inicializado, gontrosub.om debe estar en $PWD.
+#Chequear que $GRUPO exista y este inicializada como variable de entorno
+exists $ENV{'GRUPO'} or die ('Variable de entorno $GRUPO no inicializada - Error');
+
+#Si el entorno no se encuentra inicializado, gontrosub.pm debe estar en $PWD.
 push(@INC, "$ENV{'PWD'}");
 push(@INC, "$ENV{'BINDIR'}") if exists $ENV{'BINDIR'};
 
-#Chequear que el entorno haya sido inicializado
-exists $ENV{'GINICIEXEC'} or gontrosub::logFatalError("El proceso no puede ser iniciado. Entorno no inicializado.");
+#Chequear que el entorno este inicializado o iniciarlo manualmente.
+exists $ENV{'GINICIEXEC'} or gontrosub::iniciarEntorno();
 
 #Obtencion del numero de corrida
 my $procnum = gontrosub::getProcNum();
 
 #Grabar inicio en el archivo de log
 gontrosub::log("Inicio de ejecucion");
-
+	
 #Determinar tipo de corrida
 my ($corridaValida, $tipoCorrida, $area, $periodo, @argsInvalidos) = gontrosub::getTipoCorrida(@ARGV);
 
-#Si la corrida es definitiva, las variables de entorno deben estar setteadas a mano.
+#Si la invocacion es valida, se prosigue.
 if ($corridaValida == 1) {
+
 	#Grabar tipo de corrida en el archivo de log
 	gontrosub::log("Tipo de corrida $tipoCorrida, Area a procesar = $area, Periodo a procesar = $periodo");
    
@@ -101,23 +105,27 @@ if ($corridaValida == 1) {
    	}
 
 } else {
+	my $cantDigitos = 0;
 	
 	#Mensajes de error ante parametros erroneos
   	foreach(@argsInvalidos) {
   		gontrosub::log("GONTRO: $_: opcion desconocida") &&
-		(print "GONTRO: $_: opcion desconocida\n") if ($corridaValida == 2);
-       		
-		gontrosub::log("GONTRO: $_: area/periodo invalido (6 digitos)") &&
-		(print "GONTRO: $_: area/periodo invalido (6 digitos)\n") if ($corridaValida == 3);
+		(print "gontro.pl: $_: opcion desconocida\n") if ($corridaValida == 2);
+       
+		($cantDigitos = length) && gontrosub::log("GONTRO: $_: area/periodo invalido (Se esperaban 6 digitos, se encontraron $cantDigitos)") &&
+		(print "gontro.pl: $_: area/periodo invalido (Se esperaban 6 digitos, se encontraron $cantDigitos)\n") if ($corridaValida == 3);
+		
+		gontrosub::log("GONTRO: $_: area/periodo invalido (Se esperaban 6 digitos, se encontraron caracteres alfabeticos)") &&
+		(print "gontro.pl: $_: area/periodo invalido (Se esperaban 6 digitos, se encontraron caracteres alfabeticos)\n") if ($corridaValida == 6);
 
-       		gontrosub::log("GONTRO: $_: argumento invalido") &&
-		(print "GONTRO: $_: argumento invalido\n") if ($corridaValida == 4);
+       	gontrosub::log("GONTRO: $_: argumento invalido") &&
+		(print "gontro.pl: $_: argumento invalido\n") if ($corridaValida == 4);
   	}
    	
 	gontrosub::log("GONTRO: -d: se esperaba argumento [periodo]") &&
-   	(print "GONTRO: -d: se esperaba argumento [periodo]\n") if ($corridaValida == 5);
+   	(print "gontro.pl: -d: se esperaba argumento [periodo]\n") if ($corridaValida == 5);
 
-	print "Uso: GONTRO [-t] [-d periodo] [area|periodo]\n";
+	print "Uso: gontro.pl [-t] [-d periodo] [area|periodo]\n";
 };
 
-exit 1;
+exit $corridaValida;

@@ -21,6 +21,7 @@ use Tie::File;
 package gontrosub;
 
 sub getProcNum { 
+
 	my @nomArchivoProc = <$ENV{'GRUPO'}/etc/gprocnum.*>;
 	
 	gontrosub::logFatalError("Imposible determinar numero de corrida. Se esperaba solo un archivo valido en $ENV{'GRUPO'}/etc") if @nomArchivoProc > 1;
@@ -33,6 +34,20 @@ sub getProcNum {
 	`mv $nomArchivoProc[0] $ENV{'GRUPO'}/etc/gprocnum.$procnum`;
 	
 	return $1;
+}
+
+sub iniciarEntorno {
+	gontrosub::logFatalError("El archivo de configuracion $ENV{'GRUPO'}/etc/gontro.conf no existe o no tiene permisos de lectura") if !(-r "$ENV{'GRUPO'}/etc/gontro.conf");
+	open my $archivoConf, "$ENV{'GRUPO'}/etc/gontro.conf" or gontrosub::logFatalError("Error al abrir archivo de configuracion $ENV{'GRUPO'}/etc/gontro.conf");
+	
+	foreach ( <$archivoConf> ){
+		chomp;
+		$_ =~ /(\D+) = (.*)/;
+		$ENV{"$1"}="$2";
+	}
+	
+	close $archivoConf or gontrosub::logFatalError("Error al cerrar archivo de configuracion $ENV{'GRUPO'}/etc/gontro.conf");
+	return;	
 }
 
 sub getTipoCorrida {
@@ -51,9 +66,12 @@ sub getTipoCorrida {
     			push(@argsInvalidos, "$_");
     		}
     	} elsif (/\d+/) {
-    		if (/(\d{6})/) {
-    			( ("$periodo" ne "*") && ($periodo = $1) ) ||
-    			( ("$area" ne "*") && ($area = $1) );
+    		if (/(^\d{6})$/) {
+    			( ("$periodo" eq "*") && ($periodo = "$1") ) ||
+    			( ("$area" eq "*") && ($area = "$1") );
+    		} elsif (/\D+/) {
+    			$valida=6;
+    			push(@argsInvalidos, "$_");
     		} else {
     			$valida = 3;
     			push(@argsInvalidos, "$_");
@@ -68,7 +86,7 @@ sub getTipoCorrida {
     (!$tipoCorrida) && ($tipoCorrida = "-t");
     
     #Obliga a especificar un periodo ante la opcion -d
-    ($tipoCorrida eq "-d") && (!$periodo) && ($valida = 5);
+    ($tipoCorrida eq "-d") && ("$periodo" eq "*") && ($valida == 1) && ($valida = 5);
 
     return ($valida, $tipoCorrida, $area, $periodo, @argsInvalidos);
 }
@@ -402,14 +420,14 @@ sub log {
 
 	`glog.sh gontrolog "$logMsg" GONTRO`;
 
-	return;
+	return 1;
 }
 
 sub logFatalError {
 	my $error = shift;
 	
 	gontrosub::log("$error");
-	die "$error";
+	die "$error - Error";
 }
 
 1;
