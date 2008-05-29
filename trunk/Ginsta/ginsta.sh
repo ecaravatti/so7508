@@ -400,7 +400,7 @@ copiarArchivos()
 	for i in `ls "tests/confdir/"`
 	do
 		"./$MOVER" "tests/confdir/$i" "$CONFDIR" "$ARCHIVO_LOG"
-		chmod -f 755 "$CONFDIR/$i"
+		chmod -f 644 "$CONFDIR/$i"
 	done
 
 }
@@ -431,7 +431,7 @@ guardarInformacionInstalacion()
 	echo "GASTODIR = $GASTODIR" >> "$GRUPO/etc/gontro.conf"
 	echo "LOGDIR = $LOGDIR" >> "$GRUPO/etc/gontro.conf"
 	echo "LOGEXT = $LOGEXT" >> "$GRUPO/etc/gontro.conf"
-	echo "MAXLOGSIZE = $LOGSIZE KB" >> "$GRUPO/etc/gontro.conf"
+	echo "MAXLOGSIZE = $LOGSIZE" >> "$GRUPO/etc/gontro.conf"
 }
 
 crearComandoGinici()
@@ -456,10 +456,14 @@ crearComandoGinici()
 
 # En el archivo "ginici.conf" se encuentra almacenado el path y el nombre del archivo de configuración
 # del sistema GASTOS
-ARCHIVO_CONF="ginici.conf"
+ARCHIVO_CONF="../etc/ginici.conf"
 
 FIN_OK=0
 ERROR_GEMONI=1
+ERROR_GRUPO=2
+ERROR_ARCHIVO_CONF=3
+ERROR_COMANDO_NO_CORRIENDO=4
+ERROR_COMANDO_NO_TERMINADO=5
 ARCHIVO_LOG=ginicilog
 NOMBRE_COMANDO=GINICI
 GLOG=glog.sh
@@ -500,9 +504,23 @@ iniciarGemoni()
 	fi
 }
 
-echo "Iniciando configuración del entorno..."
+if [ ! -f "\$ARCHIVO_CONF" ]
+then
+	printAndLog "Error: No se ha encontrado el archivo \$ARCHIVO_CONF"
+	printAndLog "Inicialización de entorno cancelada."
+	exit \$ERROR_ARCHIVO_CONF
+fi
 
 read ARCHIVO_CONF_GRAL < \$ARCHIVO_CONF
+
+if [ ! -f "\$ARCHIVO_CONF_GRAL" ]
+then
+	printAndLog "Error: No se ha encontrado el archivo \$ARCHIVO_CONF_GRAL"
+	printAndLog "Inicialización de entorno cancelada."
+	exit \$ERROR_ARCHIVO_CONF
+fi
+
+echo "Iniciando configuración del entorno..."
 
 i=0
 while read linea
@@ -544,7 +562,7 @@ case "\$1" in
 		exit \$FIN_OK
 	else
 		printAndLog "El comando \$2 no esta corriendo"
-		exit 2
+		exit \$ERROR_COMANDO_NO_CORRIENDO
 	fi
 	;;
 "-kill")
@@ -560,11 +578,11 @@ case "\$1" in
 			exit \$FIN_OK
 		else
 			printAndLog "No se pudo terminar el comando \$2"
-			exit 3
+			exit \$ERROR_COMANDO_NO_TERMINADO
 		fi
 	else
 		printAndLog "El comando \$2 no esta corriendo"
-		exit 4
+		exit \$ERROR_COMANDO_NO_CORRIENDO
 	fi
 	;;
 *)
@@ -583,7 +601,7 @@ EOF
 	# Se crea el archivo "ginici.conf" en el cual se le indica a GINICI el nombre
 	# del archivo de configuración del sistema (gastos.conf).
 	# El nombre incluye el path completo
-	echo "$CONFDIR/gastos.conf" > "$BINDIR/ginici.conf"
+	echo "$CONFDIR/gastos.conf" > "$GRUPO/etc/ginici.conf"
 }
 
 mostrarComponentesInstaldos()
