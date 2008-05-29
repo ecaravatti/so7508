@@ -9,8 +9,8 @@
 # Se dispara automáticamente. 
 # Graba un archivo de Log.(galidalog.<ext>)
 # El propósito de este comando es:
-# Validar los archivos recibidos, ordenar los archivos y dejarlos disponibles
-# en el directorio GASTODIR/aproc para que el comando GONTRO los pueda utilizar.
+# Validar los archivos recibidos en $ARRIDIR/reci, ordenar los archivos y dejarlos disponibles
+# en el directorio $GASTODIR/aproc para que el comando GONTRO los pueda utilizar.
 # Invocar (si corresponde) al comando GONTRO.
 ########################################################################################
 #
@@ -94,6 +94,14 @@ validar_concepto()
 # 	$3: anio
 validar_fecha()
 {
+dia_numerico=$(echo $1 | grep -c "^[0-9][0-9]$")
+mes_numerico=$(echo $2 | grep -c "^[0-9][0-9]$")
+
+if [ ! $dia_numerico -eq 1 ] || [ ! $mes_numerico -eq 1 ]
+then
+	return $ERROR
+fi
+
 # Si el mes es 1,3,5,7,8,10 o 12, el dia debe ser menor o igual a 31.
 if [ $2 -eq 01 ] || [ $2 -eq 03 ] || [ $2 -eq 05 ] || [ $2 -eq 07 ] || [ $2 -eq 08 ] || [ $2 -eq 10 ]  || [ $2 -eq 12 ]
 then
