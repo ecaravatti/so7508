@@ -23,15 +23,12 @@ OK=0
 # Declaracion de paths:
 path=$GRUPO
 reci=$ARRIDIR/reci 			# Directorio de archivos a procesar
-reci_ok=$GASTODIR/reci/ok 		# Directorio de archivos procesados correctamente
-reci_rech=$GASTODIR/reci/rech 		# Directorio de archivos rechazados por no cumplir con las
-						# validaciones correspondientes.
+reci_ok=$reci/ok 			# Directorio de archivos procesados correctamente
+reci_rech=$reci/rech 			# Directorio de archivos rechazados por no cumplir con las validaciones correspondientes.
 a_procesar=$GASTODIR/aproc 		# Directorio de archivos procesados y ordenados.
 log=$LOGIDIR				# Directorio de logs.
 gastos_conf=$CONFDIR/gastos.conf	# Archivo de configuracion.
 conceptos_x_area=$CONFDIR/cxa.tab	# Tabla de conceptos por area.
-
-
 
 # Esta función recibe un archivo a ordenar como argumento.
 # Lo ordena según la clave: día-concepto-comprobante y le agrega la extensio ".ord"
@@ -71,14 +68,18 @@ validar_bisiesto()
 # conceptos por area.
 # Argumentos:
 # 	$1: id de concepto
+#	$2: codigo de area
 validar_concepto()
 {
-	# Busca si el concepto esta declarado en el 2do campo de alguno de los registros de la tabla.
-	# grep -c devuelve la cantidad de coincidencias.
-	local concepto_encontrado=$(cut -d';' -f 2 $conceptos_x_area | grep -c "^$1$") 	
+	# Valida si el concepto esta formado por 6 digitos numericos
+	local concepto_numerico=$(echo $1 | grep -c "^[0-9]\{6\}$")
 
-	# Si $concepto_encontrado es cero no hubo match con el grep"
-	if [ $concepto_encontrado -eq 0 ]
+	# Busca si el concepto esta declarado en el 2do campo de alguno de los registros de la tabla correspondientes al codigo de area.
+	# grep -c devuelve la cantidad de coincidencias.
+	local concepto_encontrado=$(grep -c "^$2;$1;.*$" $conceptos_x_area)
+
+	# Si alguna de las variables es cero no hubo match con el grep correspondiente.
+	if [ $concepto_encontrado -eq 0 ] || [ $concepto_numerico -eq 0 ]
 	then 
 		return $ERROR	
 	else
@@ -109,19 +110,20 @@ then
 			return $ERROR
 		fi
 
+# Si es Febrero
 elif [ $2 -eq 02 ]
 then
 	validar_bisiesto $3
 	local es_bisiesto=$?
 
-	# Si el mes es 2 y el año es bisiesto, el dia debe ser menor o igual a 29.
-	if [ $es_bisiesto -eq $OK ] || [ $1 -gt 29 ]
+	# Si el año es bisiesto, el dia debe ser menor o igual a 29.
+	if [ $es_bisiesto -eq $OK ] && [ $1 -gt 29 ]
 	then
 		return $ERROR
 	fi
 
-	# si el mes es 2 y el año no es bisiesto y dia debe ser menor o igual a 28.
-	if [ $es_bisiesto -eq $ERROR ] || [ $1 -gt 28 ]
+	# Si el año no es bisiesto, el dia debe ser menor o igual a 28.
+	if [ $es_bisiesto -eq $ERROR ] && [ $1 -gt 28 ]
 	then
 		return $ERROR
 	fi
@@ -153,7 +155,7 @@ validar_importe()
 			# importe nulo.
 			return $ERROR
 		fi
-#		# importe no nulo.
+		# importe no nulo.
 		return $OK
 	else
 		# no cumple con el formato.
@@ -161,25 +163,37 @@ validar_importe()
 	fi
 }
 
-validar_numerico()
+# Valida que el comprobante este informado, y que tenga por lo menos un digito numerico.
+# Argumentos:
+#	$1: comprobante
+validar_comprobante()
 {
-es_numerico=$(echo "$1" | grep -c "^[0-9]*$")
- if [ $es_numerico -eq 1 ]
-then
-	return $OK
-else
-	return $ERROR
-fi
+	es_numerico=$(echo "$1" | grep -c "^[0-9][0-9]*$")
+
+	if [ $es_numerico -eq 1 ]
+	then
+		return $OK
+	else
+		return $ERROR
+	fi
 }
 
 # Esta funcion recibe el nombre del archivo a validar.
-# Valida todos los registros, y devuelve el numero de registros erroneos.
+# Valida todos los registros, y devuelve el numero de registros erroneos en $cantidad_registros_erroneos
 # Argumentos:
 #	$1: nombre del archivo a validar.
 validar_registros_archivo() 
 {
 	local numero_registro=0
-	local cantidad_registros_erroneos=0
+	cantidad_registros_erroneos=0
+
+	IFSold=$IFS
+	IFS=$'\n'
+
+	# Obtiene codigo de area, año y mes del nombre del archivo.
+	codigo_area=$(echo $1 | cut -c 1-6)
+	anio=$(echo $1 | cut -c 8-11)
+	mes=$(echo $1 | cut -c 12-13)
 
 	for linea in `cat $reci/$1`
 	do
@@ -196,21 +210,6 @@ validar_registros_archivo()
 			comprobante=$(echo $linea | awk -F';' '{print $2}')
 			id_concepto=$(echo $linea | awk -F';' '{print $3}')
 			importe=$(echo $linea | awk -F';' '{print $4}')
-
-
-			validar_numerico $id_concepto
-			es_numerico="$?"
-			
-			if [ $es_numerico -eq $ERROR ]
-			then
-				glog.sh "galidalog" "El registro $numero_registro es rechazado debido a  concepto invalido." "GALIDA"
-				cantidad_registros_erroneos=`expr $cantidad_registros_erroneos + 1`
-				continue
-			fi
-
-			# Obtiene año y mes del nombre del archivo.
-			anio=$(echo $1 | cut -c 8-11)
-			mes=$(echo $1 | cut -c 12-13)
 
 			validar_fecha $dia $mes $anio
 			local dia_valido=$?
@@ -233,14 +232,24 @@ validar_registros_archivo()
 				cantidad_registros_erroneos=`expr $cantidad_registros_erroneos + 1`
 				continue
 			fi
-			
-			validar_concepto $id_concepto
+
+			validar_concepto $id_concepto $codigo_area
 			local concepto_valido=$?
 
 			if [ $concepto_valido -eq $ERROR ]
 			then
 				# Concepto invalido.
 				glog.sh "galidalog" "El registro $numero_registro es rechazado debido a concepto invalido." "GALIDA"
+				cantidad_registros_erroneos=`expr $cantidad_registros_erroneos + 1`
+				continue
+			fi
+
+			validar_comprobante $comprobante
+
+			if [ $? -eq $ERROR ]
+			then
+				# Comprobante invalido.
+				glog.sh "galidalog" "El registro $numero_registro es rechazado debido a comprobante invalido." "GALIDA"
 				cantidad_registros_erroneos=`expr $cantidad_registros_erroneos + 1`
 				continue
 			fi
@@ -252,9 +261,9 @@ validar_registros_archivo()
 			continue
 		fi
 	done
-	
-	# Devuelve la cantidad de registros erroneos.
-	return $cantidad_registros_erroneos
+
+	IFS=$IFSold	
+	return $OK
 }
 
 # Esta funcion se fija si el archivo ordenado existe (ya fue procesado).
@@ -263,7 +272,7 @@ validar_registros_archivo()
 #	$1: nombre del archivo sin ordenar (sin la extension ".ord")
 verificar_archivo_ordenado()
 {
-	local existe=$(ls -l $a_procesar | grep -c "$1.ord")
+	local existe=$(ls -l $a_procesar | grep -c "$1.ord$")
 
 	if [ $existe -eq 1 ]
 	then
@@ -296,7 +305,7 @@ validar_nombre_archivo()
 #	$1: Directorio a crear (path absoluto)
 crear_directorio()
 {
-if [ ! -e "$1" ] # Verifica la inexistencia de un archivo de nombre $1
+	if [ ! -e "$1" ] # Verifica la inexistencia de un archivo de nombre $1
 	then
 		glog.sh "galidalog" "Creando directorio $1." "GALIDA"
 		mkdir "$1"
@@ -306,15 +315,19 @@ if [ ! -e "$1" ] # Verifica la inexistencia de un archivo de nombre $1
 		glog.sh "galidalog" "No se pudo crear directorio $1 ya que existe un archivo con ese nombre" "GALIDA"
 		exit 2
 	fi
+
+	return $OK
 }
 
 # Esta funcion crea, si no existen, los directorios necesarios para mover los archivos procesados.
 # No recibe ningun argumento.
 crear_directorios_necesarios()
 {
-	crear_directorio "$GASTODIR/reci"
-	crear_directorio "$GASTODIR/reci/ok"
-	crear_directorio "$GASTODIR/reci/rech"
+	crear_directorio "$reci"
+	crear_directorio "$reci_ok"
+	crear_directorio "$reci_rech"
+
+	return $OK
 }
 
 # Verifica que el entorno haya sido inicializado.
@@ -376,13 +389,12 @@ do
 			else
 				# El arch no es duplicado, valida los registros."
 				validar_registros_archivo $arch
-				resultado=$?
 
-				if [ ! $resultado -eq $OK ]
+				if [ ! $cantidad_registros_erroneos -eq 0 ]
 				then
 					# Si algun registro no es valido.
 					mover.sh "$reci/$arch" "$reci_rech" "galidalog" "Archivo rechazado, algún registro no corresponde al formato adecuado"
-					glog.sh "galidalog" "Cantidad de Registros con Error: $resultado." "GALIDA"
+					glog.sh "galidalog" "Cantidad de Registros con Error: $cantidad_registros_erroneos." "GALIDA"
 
 					cantidad_archivos_rechazados=`expr $cantidad_archivos_rechazados + 1`
 
@@ -404,9 +416,10 @@ do
 done
 
 # Se fija si esta corriendo gontro.pl
-gontro_corriendo=$( ps aux | grep -c gontro )	
+gontro_corriendo=$( ps aux | grep -c gontro )
 
-if [ $gontro_corriendo -lt 2 ] 
+
+if [ $gontro_corriendo -lt 2 ]
 then
 	# Se invoca a gontro.
 	gontro.pl &
