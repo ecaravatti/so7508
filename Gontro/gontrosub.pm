@@ -110,7 +110,6 @@ sub getPresupuestoMensual {
 
 sub getGastoAcumulado {
     my ($area, $periodo, $nombreArchivoAcum) = (shift, shift, shift);
-    my $presupuestoMensual = 0;
     
     return 0 unless (-f "$nombreArchivoAcum");
     
@@ -364,13 +363,13 @@ sub generarArchivoGE {
 	open (my $archivoGE, ">> $nombreArchivoGE") or gontrosub::logFatalError("Error al abrir o crear archivo $nombreArchivoGE");
 	open (my $archivoMotivos, "$nombreArchivoMotivos") or gontrosub::logFatalError("Error al abrir archivo $nombreArchivoMotivos");
 	my @motivos = <$archivoMotivos>;
+	chomp @motivos;
 	
 	foreach my $camposRegGE (@{$gastosExtraordinarios}){
 		$motivoPrincipal = $motivoSecundario = 0;
 		print $archivoGE "$camposRegGE->[0];$camposRegGE->[1];$camposRegGE->[2];$camposRegGE->[3];";
 				
 		foreach ( @motivos ){
-			chomp;
 			/$camposRegGE->[4];(.+)/ && ($motivoPrincipal = "$1");
 			/$camposRegGE->[5];(.+)/ && ($motivoSecundario = "$1"); 
 			last if $motivoPrincipal && $motivoSecundario;

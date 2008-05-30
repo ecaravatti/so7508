@@ -128,4 +128,7 @@ if ($corridaValida == 1) {
 	print "Uso: gontro.pl [-t] [-d periodo] [area|periodo]\n";
 };
 
+#Grabar final de ejecucion en el archivo de log
+gontrosub::log("Fin del proceso");
+
 exit $corridaValida;
