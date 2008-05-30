@@ -429,6 +429,7 @@ guardarInformacionInstalacion()
 	# Se guarda la información necesaria para que GONTRO pueda
 	# inicializar el ambiente cuando es ejecutado manualmente
 	echo "BINDIR = $BINDIR" >> "$GRUPO/etc/gontro.conf"
+	echo "CONFDIR = $CONFDIR" >> "$GRUPO/etc/gontro.conf"
 	echo "ARRIDIR = $ARRIDIR" >> "$GRUPO/etc/gontro.conf"
 	echo "GASTODIR = $GASTODIR" >> "$GRUPO/etc/gontro.conf"
 	echo "LOGDIR = $LOGDIR" >> "$GRUPO/etc/gontro.conf"
