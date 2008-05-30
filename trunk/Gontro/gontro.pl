@@ -94,7 +94,7 @@ if ($corridaValida == 1) {
 				
 			gontrosub::generarArchivoGE($gastosExtraordinarios, "$ENV{'GASTODIR'}/proc/$area.ge", "$ENV{'CONFDIR'}/motivos.tab") if @{$gastosExtraordinarios} > 0;
 				
-			`mover.sh $_ $ENV{'GASTODIR'}/proc/$area.$periodo.proc$procnum gontrolog`;
+			`$ENV{'BINDIR'}/mover.sh $_ $ENV{'GASTODIR'}/proc/$area.$periodo.proc$procnum gontrolog`;
 	     }      	
 		
       	#Generar informe final y mostrarlo por pantalla
