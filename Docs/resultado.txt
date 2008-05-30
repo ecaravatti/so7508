@@ -1,0 +1,25 @@
+Archivos rechazados por GEMONI, quedan en $ARRIDIR/noreci:
+000002.200112 --> rechazado por año.
+abcdef.200803.txt --> rechazado por nombre invalido.
+invalid.txt --> rechazado por nombre invalido.
+operativos.0000001 --> rechazado por nombre invalido.
+texto 000001.201001 --> rechazado por nombre invalido.
+000001.201503~ --> rechazado por nombre invalido.
+
+--> Estos archivos deben ser rechazados por sus nombres.
+
+El directorio 000001.200912 no fue movido de lugar.
+
+Archivos rechazados por GALIDA, quedan en $ARRIDIR/reci/rech:
+000001.201003 --> rechazado por conceptos invalidos.
+000003.200804 --> rechazado por conceptos invalidos.
+000005.201002 --> rechazado por fechas invalidas.
+000006.201005 --> rechazado por todos los errores posibles.
+000006.202201 --> rechazado por cantidad de campos invalida.
+000008.201202 --> rechazado por importes invalidos.
+
+Archivos que superan las validaciones de Galida, quedan en $GASTODIR/aproc:
+000001.201503
+000002.200912
+000003.201004
+000004.201503
