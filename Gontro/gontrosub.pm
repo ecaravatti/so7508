@@ -421,7 +421,7 @@ sub generarInforme {
 sub log {
 	my $logMsg = shift;
 
-	`glog.sh gontrolog "$logMsg" GONTRO`;
+	`$ENV{'BINDIR'}/glog.sh gontrolog "$logMsg" GONTRO`;
 
 	return 1;
 }
