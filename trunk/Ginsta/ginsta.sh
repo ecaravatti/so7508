@@ -103,16 +103,16 @@ printComponents()
 			fecha=$(ls -l "$2/${i}" | awk '{print $6}')
 			if [ $longitudComando -lt 6 ]
 			then
-				printAndLog "* ${comando[0]}\t\t$usuario\t$fecha\t\t\t*"
+				printAndLog "* ${comando[0]}\t\t$usuario\t$fecha\t\t\t\t*"
 			else
-				printAndLog "* ${comando[0]}\t$usuario\t$fecha\t\t\t*"
+				printAndLog "* ${comando[0]}\t$usuario\t$fecha\t\t\t\t*"
 			fi
 		else
 			if [ $longitudComando -lt 6 ]
 			then
-				printAndLog "* ${comando[0]}\t\t\t\t\t\t\t*"
+				printAndLog "* ${comando[0]}\t\t\t\t\t\t\t\t*"
 			else
-				printAndLog "* ${comando[0]}\t\t\t\t\t\t*"
+				printAndLog "* ${comando[0]}\t\t\t\t\t\t\t*"
 			fi
 		fi
 	done
@@ -123,22 +123,22 @@ printComponents()
 # $3 = Ruta donde se encuentran los componentes
 printComponentsList()
 {
-	printAndLog "*********************************************************"
-	printAndLog "*\tProceso de Instalación del sistema GASTOS\t*"
-	printAndLog "*\t\tCopyright TPSistemasOp (c)2008\t\t*"
-	printAndLog "*********************************************************"
-	printAndLog "* Se encuentran instalados los siguientes componentes:\t*"
+	printAndLog "*****************************************************************"
+	printAndLog "*\tProceso de Instalación del sistema GASTOS\t\t*"
+	printAndLog "*\t\tCopyright TPSistemasOp (c)2008\t\t\t*"
+	printAndLog "*****************************************************************"
+	printAndLog "* Se encuentran instalados los siguientes componentes:\t\t*"
 
 	# Se imprimen los componentes instalados
 	printComponents "$1" "$3" 1
 	if [ "$2" != "" ]
 	then
-		printAndLog "* Falta instalar los siguientes componentes:\t\t*"
+		printAndLog "* Falta instalar los siguientes componentes:\t\t\t*"
 		# Se imprimen los componentes que faltan instalar
 		printComponents "$2" "$3" 0
 	fi
 
-	printAndLog "*********************************************************"
+	printAndLog "*****************************************************************"
 	
 }
 
@@ -167,21 +167,21 @@ obtenerEspacioDisponible()
 
 mostrarResumenParametros()
 {
-	printAndLog "*****************************************************************************************"
-	printAndLog "* Parámetros de la instalación del paquete GASTOS\t\t\t\t\t*"
-	printAndLog "*****************************************************************************************"
-	printAndLog "* Directorio de instalación\t\t: $GRUPO\t\t*"
-	printAndLog "* Log de la instalación\t\t\t: $GRUPO/$ARCHIVO_LOG\t*"
-	printAndLog "* Espacio disponible en $GRUPO : $DATAFREE KB\t\t\t*"
+	printAndLog "*********************************************************************************************************"
+	printAndLog "* Parámetros de la instalación del paquete GASTOS\t\t\t\t\t\t\t*"
+	printAndLog "*********************************************************************************************************"
+	printAndLog "* Directorio de instalación\t\t: $GRUPO\t\t\t*"
+	printAndLog "* Log de la instalación\t\t\t: $GRUPO/$ARCHIVO_LOG\t\t*"
+	printAndLog "* Espacio disponible en $GRUPO : $DATAFREE KB\t\t\t\t*"
 	printAndLog "* Biblioteca de ejecutables\t\t: $BINDIR\t\t*"
 	printAndLog "* Biblioteca de tablas y configuración\t: $CONFDIR\t\t*"
-	printAndLog "* Directorio de arribos\t\t\t: $ARRIDIR\t*"
-	printAndLog "* Año ingresado para aceptar gastos\t: $ANIO\t\t\t\t\t\t*"
-	printAndLog "* Directorio de gastos\t\t\t: $GASTODIR\t*"
+	printAndLog "* Directorio de arribos\t\t\t: $ARRIDIR\t\t*"
+	printAndLog "* Año ingresado para aceptar gastos\t: $ANIO\t\t\t\t\t\t\t\t*"
+	printAndLog "* Directorio de gastos\t\t\t: $GASTODIR\t\t*"
 	printAndLog "* Directorio para archivos de Log\t: $LOGDIR\t\t*"
-	printAndLog "* Extensión para los archivos de Log\t: $LOGEXT\t\t\t\t\t\t*"
-	printAndLog "* Máximo para los archivos de Log\t: $LOGSIZE KB\t\t\t\t\t\t*"
-	printAndLog "*****************************************************************************************"
+	printAndLog "* Extensión para los archivos de Log\t: $LOGEXT\t\t\t\t\t\t\t\t*"
+	printAndLog "* Máximo para los archivos de Log\t: $LOGSIZE KB\t\t\t\t\t\t\t\t*"
+	printAndLog "*********************************************************************************************************"
 }
 
 leerEspacioDisponible()
@@ -424,6 +424,7 @@ guardarInformacionInstalacion()
 	echo "MAXLOGSIZE = $LOGSIZE KB" >> "$archivoConf"
 	echo "FECINS = `date +%D\ %T`" >> "$archivoConf"
 	echo "USERID = `whoami`" >> "$archivoConf"
+	chmod -f 644 "$archivoConf"
 
 	# Se guarda la información necesaria para que GONTRO pueda
 	# inicializar el ambiente cuando es ejecutado manualmente
@@ -433,6 +434,7 @@ guardarInformacionInstalacion()
 	echo "LOGDIR = $LOGDIR" >> "$GRUPO/etc/gontro.conf"
 	echo "LOGEXT = $LOGEXT" >> "$GRUPO/etc/gontro.conf"
 	echo "MAXLOGSIZE = $LOGSIZE" >> "$GRUPO/etc/gontro.conf"
+	chmod -f 644 "$GRUPO/etc/gontro.conf"
 }
 
 crearComandoGinici()
@@ -603,18 +605,19 @@ EOF
 	# del archivo de configuración del sistema (gastos.conf).
 	# El nombre incluye el path completo
 	echo "$CONFDIR/gastos.conf" > "$GRUPO/etc/ginici.conf"
+	chmod -f 644 "$GRUPO/etc/ginici.conf"
 }
 
 mostrarComponentesInstaldos()
 {
-	printAndLog "*********************************************************"
-	printAndLog "* Se encuentran instalados los siguientes componentes:\t*"
+	printAndLog "*****************************************************************"
+	printAndLog "* Se encuentran instalados los siguientes componentes:\t\t*"
 	componentes="$GINICI $GEMONI $GALIDA $GONTRO $GLOG $MOVER"
 	printComponents "$componentes" "$BINDIR" 1
-	printAndLog "*********************************************************"
-	printAndLog "* FIN del Proceso de Instalación del Sistema de GASTOS\t*"
-	printAndLog "*\tCopyright TPSistemasOp (c)2008\t\t\t*"
-	printAndLog "*********************************************************"
+	printAndLog "*****************************************************************"
+	printAndLog "* FIN del Proceso de Instalación del Sistema de GASTOS\t\t*"
+	printAndLog "*\tCopyright TPSistemasOp (c)2008\t\t\t\t*"
+	printAndLog "*****************************************************************"
 }
 
 instalar()
