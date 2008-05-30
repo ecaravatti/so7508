@@ -408,12 +408,12 @@ sub generarInforme {
 	$textoInforme.="Acumulado Inicial: $totalxAreaInicial\n";
 	$textoInforme.="Acumulado Final:  $acumFinal\n";
 	$textoInforme.="Cantidad de Registros y Total de Gastos normales procesados: $cantNormales $montoNormal\n";
-	$textoInforme.="Cantidad de Registros y Total de Gastos extraordinarios: $cantExtraordinarios $montoExtraordinario\n";
+	$textoInforme.="Cantidad de Registros y Total de Gastos extraordinarios: $cantExtraordinarios $montoExtraordinario\n\n";
 	
 	open (my $informe, ">> $nombreInforme") or gontrosub::logFatalError("Error al abrir archivo $nombreInforme");
 	
 	print $informe "$textoInforme";
-	print "$textoInforme";
+	#print "$textoInforme";
 	
 	close $informe or gontrosub::logFatalError("Error al cerrar $nombreInforme");
 }
