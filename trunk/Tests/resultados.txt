@@ -1,0 +1,15 @@
+Los siguientes archivos son rechazados por GEMONI (quedan en arridir/noreci):
+000002.200112
+abcdef.200803.txt
+invalid.txt
+operativos.0000001
+texto 000001.201001
+NOTA: el directorio 000001.200912
+
+Los siguientes archivos fueron rechazados por GALIDA (quedan en arridir/reci/rech):
+000001.201003
+000001.201010
+000001.202201
+000002.200912
+000003.201005
+
