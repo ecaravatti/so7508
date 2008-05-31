@@ -38,25 +38,20 @@ validar_anio()
 #Devuelve la cantidad de ocurrencias del mismo.
 buscar_en_archivo()
 {
-#	echo "estoy en buscar_en_archivo. Quiero buscar en: $area_tab"
+
 	local resultado=$(cat $area_tab | grep "$1;" | wc -l)
-#	echo "encontro el area?: $resultado"
+
 	return $resultado
 }
 
 # Recibe como argumento el nombre de archivo.
 validar_area()
 {
-#	echo "estoy validando area. en \$1 hay: $1"
 	#obtengo los primeros 6 caracteres
 	local area=$(echo $1 | cut -c 1-6)
 
-#	echo "en area me queda: $area"
-
 	buscar_en_archivo $area
 	area_encontrada="$?"
-
-#	echo "sali de buscar archivo, area_encontrada: $area_encontrada"
 
 	return $area_encontrada
 }
@@ -100,11 +95,9 @@ validar_nombre_archivo()
 # Verifica que haya archivos en el directorio reci
 archivos_en_reci()
 {
-	local cant_archivos_en_reci=$(ls -l $reci | wc -l)
+	local cant_archivos_en_reci=$(ls -l $reci | grep -c '^-')
 
-	# Si el directorio no contiene archivos, debe devolver 3, la linea donde indica el total y los directorios reci/ok y reci/rech.
-	# Si devuelve un numero mas grande, quiere decir que hay archivos en el directorio.
-	if [ $cant_archivos_en_reci -gt 3 ]
+	if [ $cant_archivos_en_reci -gt 0 ]
 	then
 		return $OK
 	fi
@@ -144,13 +137,15 @@ do
 
 	
 	# verifica que esta corriendo galida.sh
-	galida_corriendo=$( ps aux | grep -c galida )	
-	# verifica que haya archivos en reci
-	archivos_en_reci
+	#galida_corriendo = 0 : galida.sh no se encuentra en ejecucion
+	#galida_corriendo = 1 : galida.sh estan en ejecucion
+	galida_corriendo=$(ps | grep -c "galida.sh")
 	
-	hay_archivos="$?"
+	# verifica que haya archivos en reci
+	archivos_en_reci	
+	hay_archivos=$?
 
-	if [ "$galida_corriendo" -lt 2 ] && [ "$hay_archivos" -eq "$OK" ] 
+	if [ $galida_corriendo -eq 0 ] && [ $hay_archivos -eq $OK ] 
 	then
 		galida.sh &
 	fi
@@ -158,6 +153,6 @@ do
 	sleep $dormir
 done
 
-IFS=$IFSOriginal
+IFS="$IFSOriginal"
 
 exit 0 
