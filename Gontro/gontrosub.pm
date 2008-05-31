@@ -86,7 +86,7 @@ sub getTipoCorrida {
     (!$tipoCorrida) && ($tipoCorrida = "-t");
     
     #Obliga a especificar un periodo ante la opcion -d
-    ($tipoCorrida eq "-d") && ("$periodo" eq "*") && ($valida == 1) && ($valida = 5);
+    ("$tipoCorrida" eq "-d") && ("$periodo" eq "*") && ($valida == 1) && ($valida = 5);
 
     return ($valida, $tipoCorrida, $area, $periodo, @argsInvalidos);
 }
@@ -110,7 +110,8 @@ sub getPresupuestoMensual {
 
 sub getGastoAcumulado {
     my ($area, $periodo, $nombreArchivoAcum) = (shift, shift, shift);
-    
+    my $gastoAcumulado = 0;
+
     return 0 unless (-f "$nombreArchivoAcum");
     
     open(my $acumuladoAreas, "$nombreArchivoAcum") or gontrosub::logFatalError("Error al abrir $nombreArchivoAcum");

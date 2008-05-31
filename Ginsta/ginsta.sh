@@ -103,9 +103,9 @@ printComponents()
 			fecha=$(ls -l "$2/${i}" | awk '{print $6}')
 			if [ $longitudComando -lt 6 ]
 			then
-				printAndLog "* ${comando[0]}\t\t$usuario\t$fecha\t\t\t\t*"
+				printAndLog "* ${comando[0]}\t\t$usuario\t$fecha\t\t\t*"
 			else
-				printAndLog "* ${comando[0]}\t$usuario\t$fecha\t\t\t\t*"
+				printAndLog "* ${comando[0]}\t$usuario\t$fecha\t\t\t*"
 			fi
 		else
 			if [ $longitudComando -lt 6 ]
@@ -170,15 +170,15 @@ mostrarResumenParametros()
 	printAndLog "*********************************************************************************************************"
 	printAndLog "* Parámetros de la instalación del paquete GASTOS\t\t\t\t\t\t\t*"
 	printAndLog "*********************************************************************************************************"
-	printAndLog "* Directorio de instalación\t\t: $GRUPO\t\t\t*"
-	printAndLog "* Log de la instalación\t\t\t: $GRUPO/$ARCHIVO_LOG\t\t*"
-	printAndLog "* Espacio disponible en $GRUPO : $DATAFREE KB\t\t\t\t*"
-	printAndLog "* Biblioteca de ejecutables\t\t: $BINDIR\t\t*"
-	printAndLog "* Biblioteca de tablas y configuración\t: $CONFDIR\t\t*"
-	printAndLog "* Directorio de arribos\t\t\t: $ARRIDIR\t\t*"
+	printAndLog "* Directorio de instalación\t\t: $GRUPO\t\t\t\t*"
+	printAndLog "* Log de la instalación\t\t: $GRUPO/$ARCHIVO_LOG\t\t\t*"
+	printAndLog "* Espacio disponible en $GRUPO : $DATAFREE KB\t\t\t\t\t*"
+	printAndLog "* Biblioteca de ejecutables\t\t: $BINDIR\t\t\t\t*"
+	printAndLog "* Biblioteca de tablas y configuración\t: $CONFDIR\t\t\t\t*"
+	printAndLog "* Directorio de arribos\t\t\t: $ARRIDIR\t\t\t*"
 	printAndLog "* Año ingresado para aceptar gastos\t: $ANIO\t\t\t\t\t\t\t\t*"
-	printAndLog "* Directorio de gastos\t\t\t: $GASTODIR\t\t*"
-	printAndLog "* Directorio para archivos de Log\t: $LOGDIR\t\t*"
+	printAndLog "* Directorio de gastos\t\t\t: $GASTODIR\t\t\t\t*"
+	printAndLog "* Directorio para archivos de Log\t: $LOGDIR\t\t\t\t*"
 	printAndLog "* Extensión para los archivos de Log\t: $LOGEXT\t\t\t\t\t\t\t\t*"
 	printAndLog "* Máximo para los archivos de Log\t: $LOGSIZE KB\t\t\t\t\t\t\t\t*"
 	printAndLog "*********************************************************************************************************"
@@ -259,8 +259,8 @@ leerAnioInicial()
 	if [ "$opcion" != "" ]
 	then
 		anioIngresado=$(echo "$opcion" | grep ^[1-9][0-9][0-9][0-9]$)
-		anioActual=$(date +%Y)
-		if [ "$anioIngresado" != "" ] && [ $anioIngresado -le $anioActual ]
+# 		anioActual=$(date +%Y)
+		if [ "$anioIngresado" != "" ] #&& [ $anioIngresado -le $anioActual ]
 		then
 			ANIO=$anioIngresado
 		else
@@ -384,7 +384,7 @@ copiarArchivos()
 	"./$MOVER" "$GONTRO" "$BINDIR" "$ARCHIVO_LOG"
 	"./$MOVER" "$GONTROSUB" "$BINDIR" "$ARCHIVO_LOG"
 	chmod -f 777 "$BINDIR/$GONTRO"
-	chmod -f 777 "$BINDIR/$GONTROSUB"
+	chmod -f 644 "$BINDIR/$GONTROSUB"
 	printAndLog "Instalación del componente GONTRO completada"
 
 	cp "$GLOG" "$BINDIR"
