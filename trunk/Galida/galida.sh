@@ -354,6 +354,21 @@ fi
 }
 
 
+# Verifica que haya archivos en el directorio reci
+archivos_en_aproc()
+{
+	local cant_archivos_en_aproc=$(ls -l $a_procesar | wc -l)
+
+	# Si el directorio no contiene archivos, debe devolver 1, la linea donde indica el total y los directorios reci/ok y reci/rech.
+	# Si devuelve un numero mas grande, quiere decir que hay archivos en el directorio.
+	if [ $cant_archivos_en_aproc -gt 1 ]
+	then
+		return $OK
+	fi
+	
+	return $ERROR
+}
+
 # ********************************
 # MAIN
 # ********************************
@@ -424,10 +439,12 @@ do
 done
 
 # Se fija si esta corriendo gontro.pl
-gontro_corriendo=$( ps aux | grep -c gontro )
+gontro_corriendo=$( ps aux | grep -c "gontro.pl" )
 
+archivos_en_aproc
+hay_archivos=$?
 
-if [ $gontro_corriendo -lt 2 ]
+if [ $gontro_corriendo -lt 2 ] && [ $hay_archivos -eq $OK ]
 then
 	# Se invoca a gontro.
 	gontro.pl &
