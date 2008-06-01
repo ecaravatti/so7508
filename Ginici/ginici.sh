@@ -39,7 +39,7 @@ printAndLog()
 # Si el comando no esta corriendo, lo ejecuta y muestra el ID del proceso.
 iniciarGemoni()
 {
-	comando_a_verificar="gemoni"
+	comando_a_verificar="gemoni.sh"
 	comando=$(ps | grep "$comando_a_verificar")
 	if [ -z "$comando" ]
 	then
@@ -57,8 +57,10 @@ iniciarGemoni()
 			return $ERROR_GEMONI
 		fi
 	else
-		tiempo_corriendo=$(ps -e | grep $comando_a_verificar | awk '{print $3}')
-		echo "El comando GEMONI se encuentra corriendo hace $tiempo_corriendo"
+		tiempo_corriendo=$(ps -o etime -C $comando_a_verificar | awk '{print $1}' | grep '[0-9]')
+		minutos=$(echo $tiempo_corriendo | sed 's/\([0-9]\{2,\}\):[0-9]\{2,\}/\1/')
+		segundos=$(echo $tiempo_corriendo | sed 's/[0-9]\{2,\}:\([0-9]\{2,\}\)/\1/')
+		echo "El comando GEMONI se encuentra corriendo hace $minutos minutos $segundos segundos"
 		return $FIN_OK
 	fi
 }
