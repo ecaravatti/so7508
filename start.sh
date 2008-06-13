@@ -15,5 +15,6 @@ cp "$REPO/Glog/glog.sh" $INSTALL
 cp "$REPO/Gontro/gontro.pl" $INSTALL
 cp "$REPO/Gontro/gontrosub.pm" $INSTALL
 cp "$REPO/Mover/mover.sh" $INSTALL
+cp "$REPO/Docs/README.txt" $INSTALL
 cp -r "$REPO/Tests/arridir" $INSTALL/tests
 cp -r "$REPO/Tests/confdir" $INSTALL/tests
