@@ -55,28 +55,30 @@ INSTRUCTIVO DE EJECUCIÓN DEL SISTEMA GASTOS
 
 1º) Ingresar al directorio grupo03
 
+2º) Ingresar al directorio de ejecutables dentro del directorio grupo03 (por defecto es grupo03/bin)
+
 2º) Correr el comando GINICI
 
-	grupo03$ ./ginici.sh
+	grupo03/bin$ ./ginici.sh
 
 	Al ejecutar este comando, el mismo llamará automáticamente al comando GEMONI. Este último a su vez llamará al comando GALIDA, el cual a su vez lanzará el comando GONTRO.
 
 	También se puede invocar al comando GINICI para obtener información útil. Por ejemplo:
 
 	Obtener el valor de una variable de entorno:
-		$ ./ginici.sh -var GRUPO
+		grupo03/bin$ ./ginici.sh -var GRUPO
 	Resultado:
-		$ GRUPO = /home/damian/grupo03
+		GRUPO=/home/damian/grupo03
 
 	Obtener el ID de un comando:
-		$ ./ginici.sh -id gemoni.sh
+		grupo03/bin$ ./ginici.sh -id gemoni.sh
 	Resultado:
 		Comando gemoni.sh corriendo bajo el id 6589
 		ó
 		El comando gemoni.sh no está corriendo
 
 	Detener un proceso:
-		$ ./ginici.sh -kill gemoni.sh
+		grupo03/bin$ ./ginici.sh -kill gemoni.sh
 	Resultado:
 		El comando gemoni.sh fue terminado satisfactoriamente
 		ó
@@ -84,22 +86,22 @@ INSTRUCTIVO DE EJECUCIÓN DEL SISTEMA GASTOS
 
 3º) Puede optar por ejecutar el comando GONTRO manualmente:
 
-	$gontro.pl  
+	grupo03/bin$ ./gontro.pl  
 	Realiza el control todas las áreas y periodos determinados por los nombres validos de archivos presentes en $GASTODIR/aproc. Corrida tipo test. Genera un archivo final de informe $GRUPO/informe.proc<numero-corrida>.
 	
-	$gontro.pl -t
+	grupo03/bin$ ./gontro.pl -t
 	Ídem anterior.
 	
-	$gontro.pl 112233 200810
+	grupo03/bin$ ./gontro.pl 112233 200810
 	Procesa todos los archivos pertenecientes al área 112233, del periodo 200811. Corrida tipo test
 	
-	$gontro.pl -t 112233 200810
+	grupo03/bin$ ./gontro.pl -t 112233 200810
 	Ídem anterior.
 	
-	$gontro.pl -t -d -d 
+	grupo03/bin$ ./gontro.pl -t -d -d 
 	Corrida tipo test sin parámetros (los -d subsiguientes se ignoran).
 	
-	$gontro.pl -d 200811
+	grupo03/bin$ ./gontro.pl -d 200811
 	Corrida tipo definitiva. Realiza el control de todos los archivos pertenecientes al periodo 200811. Confecciona una archivo de informe $GRUPO/informe.proc<numero-corrida>; actualiza las tablas de acumulación $CONFDIR/area.acum y $CONFDIR/cxa.acum; genera archivos resúmenes de gastos extraordinarios ($GASTODIR/proc/<área>.ge) y gastos normales ($GASTODIR/proc/<área>.gn); mueve los archivos ya procesados de $GASTODIR/aproc a $GASTODIR/proc.
 	
 
