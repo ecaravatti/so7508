@@ -1,0 +1,13 @@
+Pepe Araos,12345678901,20071212,asd3@asd.com
+Jose Esquivo,23456789012,20071201,asd3@asd.com
+Armando Esteban Quito,22222222222,20070908,asd2@asd.com
+Niels Bhor,11122112232,20070908,asd2@asd.com
+Manuel Perea,33333333333,20071008,nnn@nomail.com
+Jose Perez,11111111111,20071005,asd@asd.com
+Enrique Savio,44444444444,20070918,nnn@nomail.com
+Alberto Gonzales,01234567890,20001103,nnn@nomail.com
+Roberto Insua,34567890123,20001203,nnn@nomail.com
+Ignacio Rodriguez,45678901234,20000203,nnn@nomail.com
+Esteban Zeta,56789012345,20000403,nnn@nomail.com
+Waldorf Osorio,67890123456,20011003,nnn@nomail.com
+Guillermo Cardozo,78901234567,20031003,nnn@nomail.com
