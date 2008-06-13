@@ -125,7 +125,7 @@ if ($corridaValida == 1) {
 	gontrosub::log("GONTRO: -d: se esperaba argumento [periodo]") &&
    	(print "gontro.pl: -d: se esperaba argumento [periodo]\n") if ($corridaValida == 5);
 
-	print "Uso: gontro.pl [-t] [-d periodo] [area|periodo]\n";
+	print "Uso: gontro.pl [-t] [-d periodo] [periodo|area]\n";
 };
 
 #Grabar final de ejecucion en el archivo de log
